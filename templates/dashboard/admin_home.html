@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load compliance_tags %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Welcome back, {{ user.first_name|default:user.username }}{% endblock %}
+{% block page_sub %}Monitor compliance across {{ stations|length }} stations in Tanzania.{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<div class="grid g5" style="margin-bottom:20px">
+  <div class="kpi"><div class="n" style="color:var(--st-expired)">{{ counts.expired }}</div><div class="l">Expired</div></div>
+  <div class="kpi"><div class="n" style="color:var(--st-expired)">{{ counts.critical }}</div><div class="l">Critical</div></div>
+  <div class="kpi"><div class="n" style="color:#B9800B">{{ counts.warning }}</div><div class="l">Expiring soon</div></div>
+  <div class="kpi"><div class="n" style="color:var(--st-proc)">{{ counts.processing }}</div><div class="l">Processing</div></div>
+  <div class="kpi"><div class="n" style="color:var(--green)">{{ counts.safe|add:counts.active }}</div><div class="l">Compliant</div></div>
+</div>
+
+<div class="sec">
+  <h2>Needs attention</h2>
+  <a href="{% url 'compliance:matrix' %}">Open matrix →</a>
+</div>
+<div class="rule" style="margin-bottom:14px"></div>
+
+<div class="tbl-wrap">
+  {% if attention %}
+  <table class="tbl">
+    <thead><tr>
+      <th style="width:70px">No.</th><th>Station</th><th>Compliance</th>
+      <th>Expires</th><th style="text-align:right">Days left</th>
+      <th class="mid">Status</th><th style="text-align:right">Actions</th>
+    </tr></thead>
+    <tbody>
+    {% for sc in attention %}
+      <tr class="{% if sc.band.key == 'expired' %}row-expired{% elif sc.band.key == 'warning' %}row-warning{% endif %}">
+        <td><span class="no dot-{{ sc.band.css }}">{{ forloop.counter }}</span></td>
+        <td><a href="{{ sc.station.get_absolute_url }}" class="st-name" style="color:var(--ink)">{{ sc.station.name|upper }}</a></td>
+        <td><span class="chip">{{ sc.compliance_type.short_code }}</span></td>
+        <td><span class="dt"><svg><use href="#i-cal"/></svg>
+            {{ sc.current_period.expiry_date|date:"d/m/Y"|default:"—" }}</span></td>
+        <td style="text-align:right;font-weight:700" class="n-{{ sc.band.css }}">
+          {% if sc.days_left is not None %}{{ sc.days_left|days_display }}{% else %}—{% endif %}</td>
+        <td style="text-align:center"><span class="pill band-{{ sc.band.css }}"><i></i>{{ sc.band.label }}</span></td>
+        <td><div class="acts"><a href="{{ sc.get_absolute_url }}" class="abtn">
+            <svg><use href="#i-arrow"/></svg> Open</a></div></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <div class="empty">Nothing needs attention across any station.</div>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,130 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ BRAND.company_name }} · Compliance{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+<div class="shell">
+
+  <nav class="side">
+    <div class="logo">
+      <div class="leaves"><span class="l1"></span><span class="l2"></span><span class="l3"></span></div>
+     <h1>Rashal</h1>
+<h2>PETROLEUM</h2>
+<em>Igniting Africa</em>
+    </div>
+
+    <div class="side-green">
+      <div class="nav">
+        <a href="{% url 'dashboard:home' %}" class="{% if nav == 'home' %}on{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+          {% if user.sees_all_stations %}Dashboard{% else %}Home{% endif %}</a>
+
+        {% if user.sees_all_stations %}
+        <a href="{% url 'stations:list' %}" class="{% if nav == 'stations' %}on{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 20V5a2 2 0 012-2h5a2 2 0 012 2v15"/><path d="M3 20h12"/>
+            <path d="M13 9h3a2 2 0 012 2v5a1.5 1.5 0 003 0v-6l-2.5-2.5"/><path d="M6.5 7h4"/></svg>
+          Stations</a>
+        {% endif %}
+
+        <a href="{% url 'compliance:type_list' %}" class="{% if nav == 'compliance' %}on{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
+          Compliance</a>
+
+        {% if user.sees_all_stations %}
+        <a href="{% url 'compliance:matrix' %}" class="{% if nav == 'matrix' %}on{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/>
+            <rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
+          Matrix</a>
+        {% endif %}
+
+        {% if user.is_superuser %}
+        <a href="/django-admin/" class="{% if nav == 'settings' %}on{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 008 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Settings</a>
+        {% endif %}
+      </div>
+
+      <div class="forecourt">
+        <svg viewBox="0 0 238 130" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M0 130 Q60 96 120 108 T238 96 L238 130 Z" fill="#043D22"/>
+          <rect x="44" y="52" width="112" height="9" rx="3" fill="#0F8B4F"/>
+          <rect x="44" y="61" width="112" height="4" fill="#F26522" opacity=".8"/>
+          <rect x="54" y="65" width="7" height="42" fill="#0F8B4F"/>
+          <rect x="139" y="65" width="7" height="42" fill="#0F8B4F"/>
+          <rect x="76" y="80" width="17" height="27" rx="2" fill="#0F8B4F"/>
+          <rect x="107" y="80" width="17" height="27" rx="2" fill="#0F8B4F"/>
+          <path d="M186 107 v-24" stroke="#0F8B4F" stroke-width="3"/>
+          <ellipse cx="186" cy="74" rx="15" ry="17" fill="#0F8B4F"/>
+          <path d="M0 107 h238" stroke="#F26522" stroke-width="1.5" opacity=".55"/>
+        </svg>
+      </div>
+
+      <div class="who">
+        <span class="who-av">{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}</span>
+        <span>
+          <span class="who-n">{{ user.get_full_name|default:user.username }}</span>
+          <span class="who-r">{{ user.role_label }}</span>
+        </span>
+        <a href="#" title="Sign out" onclick="event.preventDefault();document.getElementById('lo').submit();">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" style="width:18px;height:18px">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></a>
+        <form id="lo" method="post" action="{% url 'accounts:logout' %}" style="display:none">{% csrf_token %}</form>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <header class="phead">
+      <svg class="leaf-mark" viewBox="0 0 400 300" fill="none" aria-hidden="true">
+        <path d="M210 40c60 0 110 44 110 104 0 22-7 42-18 59-30-6-118-30-118-118 0-16 9-33 26-45z"
+              stroke="#DFF0E6" stroke-width="2"/>
+        <path d="M300 60c40 24 60 76 40 124-32-4-84-34-92-84-3-22 20-46 52-40z"
+              stroke="#FBE0D0" stroke-width="2"/>
+        <path d="M205 210c30-40 70-70 118-84" stroke="#DFF0E6" stroke-width="2"/>
+        <path d="M255 205c22-32 54-52 92-58" stroke="#FBE0D0" stroke-width="2"/>
+      </svg>
+
+      <div class="phead-right">
+        <span class="bell">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+          {% if alert_count %}<b>{{ alert_count }}</b>{% endif %}
+        </span>
+        <span class="sep"></span>
+        <span class="acct">
+          <span class="av">{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}</span>
+          {{ user.get_full_name|default:user.username }}
+        </span>
+      </div>
+
+      <div class="phead-in">
+        {% block crumb %}{% endblock %}
+        <h1>{% block page_title %}{% endblock %}</h1>
+        <p>{% block page_sub %}{% endblock %}</p>
+        <div class="rule"></div>
+      </div>
+    </header>
+
+    <div class="body">
+      {% if messages %}{% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}{% endif %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

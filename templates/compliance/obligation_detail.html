@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% load compliance_tags %}
+{% block title %}{{ obligation.station.name }} · {{ obligation.compliance_type.short_code }}{% endblock %}
+{% block crumb %}<div class="crumb">Compliance &gt;
+  <span>{{ obligation.compliance_type.short_code }} &gt; {{ obligation.station.name }}</span></div>{% endblock %}
+{% block page_title %}{{ obligation.station.name }}{% endblock %}
+{% block page_sub %}{{ obligation.compliance_type.name }} — {{ obligation.compliance_type.issuing_authority }}{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+{# Zone 1: is it valid right now, and where is the certificate. Zero clicks. #}
+<div class="card" style="margin-bottom:20px;border-top:4px solid;border-top-color:
+  {% if obligation.band.key == 'expired' or obligation.band.key == 'critical' %}var(--st-expired)
+  {% elif obligation.band.key == 'warning' %}var(--st-soon)
+  {% elif obligation.band.key == 'processing' %}var(--st-proc){% else %}var(--green){% endif %}">
+  {% with p=current %}
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px">
+    <span>
+      <span class="pill band-{{ obligation.band.css }}"><i></i>{{ obligation.band.label }}</span>
+      {% if p.certificate_number %}<span class="chip" style="margin-left:9px">{{ p.certificate_number }}</span>{% endif %}
+    </span>
+    {% if can_write %}
+      <a href="/django-admin/compliance/complianceperiod/add/?station_compliance={{ obligation.pk }}"
+         class="btn orange">{% if processing %}Enter certificate dates{% else %}Start renewal{% endif %}</a>
+    {% endif %}
+  </div>
+
+  {% if p and p.expiry_date %}
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+      <span class="n-{{ obligation.band.css }}" style="font-size:38px;font-weight:700">{{ p.days_left|days_display }}</span>
+      <span style="font-size:14px;color:var(--muted)">days {% if p.days_left < 0 %}ago — lapsed{% else %}left{% endif %}
+        · {% if p.days_left < 0 %}lapsed{% else %}expires{% endif %} {{ p.expiry_date|date:"d M Y" }}</span>
+    </div>
+    <div class="grid g3" style="padding-bottom:16px;border-bottom:1px solid var(--line)">
+      <span><div style="font-size:12px;color:var(--muted)">Period</div>
+        <b>{{ p.start_date|date:"d/m/y" }} → {{ p.expiry_date|date:"d/m/y" }}</b></span>
+      <span><div style="font-size:12px;color:var(--muted)">Paid</div>
+        <b>{{ p.amount_paid|tzs }}{% if p.paid_at %} · {{ p.paid_at|date:"d/m/y" }}{% endif %}</b></span>
+      <span><div style="font-size:12px;color:var(--muted)">Filed by</div>
+        <b>{{ p.submitted_by|default:"—" }}</b></span>
+    </div>
+  {% else %}
+    <p style="color:var(--muted)">No certificate on file for this compliance yet.</p>
+  {% endif %}
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px">
+    <span style="font-size:12px;color:var(--muted)">Current documents</span>
+    {% if can_write and p %}
+      <a href="{% url 'compliance:upload_document' p.pk %}" class="abtn o">
+        <svg><use href="#i-dl"/></svg> Upload</a>
+    {% endif %}
+  </div>
+
+  {% for d in p.documents.all %}
+    <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;
+                border:1px solid var(--line);border-radius:11px;margin-bottom:8px">
+      <svg style="width:20px;height:20px;stroke:var(--green);stroke-width:1.6;fill:none">
+        <use href="#i-{% if d.doc_type == 'payment_receipt' %}receipt{% else %}cert{% endif %}"/></svg>
+      <span style="flex:1"><b style="font-size:13.5px">{{ d.original_name|default:d.file.name }}</b>
+        <div style="font-size:12px;color:var(--muted)">{{ d.get_doc_type_display }} · {{ d.size_display }}
+          · uploaded {{ d.created_at|date:"d/m/y" }}</div></span>
+      <button type="button" class="abtn view-doc"
+              data-url="{{ d.get_absolute_url }}"
+              data-name="{{ d.original_name|default:d.file.name }}"
+              data-pdf="{{ d.is_pdf|yesno:'1,0' }}">
+        <svg><use href="#i-eye"/></svg> View</button>
+      <a href="{{ d.download_url }}" class="abtn o"><svg><use href="#i-dl"/></svg> Download</a>
+    </div>
+  {% empty %}
+    <p style="font-size:13px;color:var(--muted);margin:0 0 10px">No documents on the current period yet.</p>
+  {% endfor %}
+
+  {# Explicit prompts for the two documents that matter, when missing. #}
+  {% if can_write and p %}
+    {% if not p.certificate %}
+      <a href="{% url 'compliance:upload_document' p.pk %}"
+         style="display:flex;align-items:center;gap:10px;padding:11px 14px;
+                border:1px dashed var(--green-line);border-radius:11px;margin-bottom:8px;
+                color:var(--green);font-size:13px;font-weight:500">
+        <svg style="width:18px;height:18px;stroke:var(--green);stroke-width:1.6;fill:none">
+          <use href="#i-cert"/></svg> Add the compliance certificate</a>
+    {% endif %}
+    {% if not p.receipt and obligation.compliance_type.requires_payment_receipt %}
+      <a href="{% url 'compliance:upload_document' p.pk %}"
+         style="display:flex;align-items:center;gap:10px;padding:11px 14px;
+                border:1px dashed var(--orange-line);border-radius:11px;
+                color:var(--orange);font-size:13px;font-weight:500">
+        <svg style="width:18px;height:18px;stroke:var(--orange);stroke-width:1.6;fill:none">
+          <use href="#i-receipt"/></svg> Add the payment receipt</a>
+    {% endif %}
+  {% endif %}
+  {% endwith %}
+</div>
+
+{# The two-truths case: renewing AND unlicensed at the same time. #}
+{% if processing and lapsed_behind_renewal %}
+  <div class="card" style="margin-bottom:20px;background:var(--st-proc-bg)">
+    <span class="pill band-processing"><i></i>Renewal in progress</span>
+    <p style="margin:12px 0 0;font-size:14px">
+      Started {{ processing.processing_started_on|date:"d M Y" }}{% if processing.days_in_processing %}
+      — {{ processing.days_in_processing }} day{{ processing.days_in_processing|pluralize }} ago{% endif %}.
+      {% if processing.amount_paid %}Paid {{ processing.amount_paid|tzs }}.{% endif %} Awaiting the certificate.</p>
+    <div class="msg" style="background:var(--st-expired-bg);color:var(--st-expired);margin:12px 0 0">
+      The previous licence expired {{ lapsed_behind_renewal.expiry_date|date:"d M Y" }}. This station is not
+      covered while the renewal is in progress.</div>
+  </div>
+{% endif %}
+
+{# Zone 3: history. Nothing is ever overwritten. #}
+<div class="sec"><h2>History</h2>
+  <span style="font-size:13px;color:var(--muted)">{{ history|length }} earlier period{{ history|length|pluralize }}</span></div>
+<div class="rule" style="margin-bottom:14px"></div>
+
+<div class="tbl-wrap">
+  {% if history %}
+  <table class="tbl">
+    <thead><tr><th>Period</th><th>Certificate</th><th style="text-align:right">Paid</th>
+      <th>Documents</th><th class="mid">Status</th></tr></thead>
+    <tbody>
+    {% for p in history %}
+      {# A missing receipt is visible without expanding. That is the row an
+         auditor hunts for, so it should find them. #}
+      <tr class="{% if p.has_receipt_gap %}row-warning{% endif %}">
+        <td><span class="dt"><svg><use href="#i-cal"/></svg>
+          {% if p.start_date %}{{ p.start_date|date:"d/m/y" }} → {{ p.expiry_date|date:"d/m/y" }}{% else %}—{% endif %}</span></td>
+        <td>{% if p.certificate_number %}<span class="chip">{{ p.certificate_number }}</span>{% else %}—{% endif %}</td>
+        <td style="text-align:right">{{ p.amount_paid|tzs }}</td>
+        <td><div class="acts" style="justify-content:flex-start">
+          {% for d in p.documents.all %}
+            <button type="button" class="abtn view-doc{% if d.doc_type == 'payment_receipt' %} o{% endif %}"
+                    data-url="{{ d.get_absolute_url }}"
+                    data-name="{{ d.original_name|default:d.file.name }}"
+                    data-pdf="{{ d.is_pdf|yesno:'1,0' }}">
+              <svg><use href="#i-{% if d.doc_type == 'payment_receipt' %}receipt{% else %}cert{% endif %}"/></svg>
+              {{ d.get_doc_type_display }}</button>
+          {% empty %}<span style="color:var(--faint)">—</span>{% endfor %}</div></td>
+        <td style="text-align:center">
+          {% if p.has_receipt_gap %}<span class="pill band-warning"><i></i>No receipt</span>
+          {% else %}<span class="pill band-unknown"><i></i>{{ p.get_status_display }}</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <div class="empty">No earlier periods. Every renewal from now on is kept here with its own
+      certificate and receipt.</div>
+  {% endif %}
+</div>
+
+{# Inline viewer. Opens the certificate or receipt right here -- glancing at
+   a document to check a number shouldn't mean downloading a file to a phone.
+   Everything is served through the scoped serve_document view. #}
+<div class="viewer" id="viewer" hidden>
+  <div class="viewer-bar">
+    <b id="v-name"></b>
+    <span style="flex:1"></span>
+    <a id="v-dl" class="abtn o" href="#"><svg><use href="#i-dl"/></svg> Download</a>
+    <button type="button" class="abtn" id="v-close">Close</button>
+  </div>
+  <div class="viewer-body" id="v-body"></div>
+</div>
+
+<style>
+  .viewer { position: fixed; inset: 0; z-index: 90; background: rgba(11,32,20,.72);
+            display: flex; flex-direction: column; padding: 3vh 3vw; }
+  .viewer-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .viewer-bar b { color: #fff; font-size: 15px; }
+  .viewer-bar .abtn { background: #fff; }
+  .viewer-body { flex: 1; background: #fff; border-radius: 12px; overflow: auto;
+                 display: flex; align-items: center; justify-content: center; }
+  .viewer-body iframe { width: 100%; height: 100%; border: 0; }
+  .viewer-body img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  @media (max-width: 640px) { .viewer { padding: 0; } .viewer-bar { padding: 10px; }
+    .viewer-body { border-radius: 0; } }
+</style>
+
+<script>
+(function () {
+  var viewer = document.getElementById('viewer'),
+      body   = document.getElementById('v-body'),
+      name   = document.getElementById('v-name'),
+      dl     = document.getElementById('v-dl');
+
+  function open(url, label, isPdf) {
+    name.textContent = label;
+    dl.href = url + '?download=1';
+    body.innerHTML = '';
+    if (isPdf) {
+      var f = document.createElement('iframe'); f.src = url; body.appendChild(f);
+    } else {
+      var img = document.createElement('img'); img.src = url; img.alt = label; body.appendChild(img);
+    }
+    viewer.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+  function close() {
+    viewer.hidden = true; body.innerHTML = ''; document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.view-doc').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      open(btn.dataset.url, btn.dataset.name, btn.dataset.pdf === '1');
+    });
+  });
+  document.getElementById('v-close').addEventListener('click', close);
+  viewer.addEventListener('click', function (e) { if (e.target === viewer) close(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !viewer.hidden) close(); });
+})();
+</script>
+{% include "compliance/_viewer.html" %}
+{% endblock %}

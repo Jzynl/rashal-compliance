@@ -1,0 +1,77 @@
+RASHAL ENERGIES - COMPLIANCE MANAGEMENT SYSTEM
+==============================================
+
+WINDOWS QUICK START
+-------------------
+  pip install -r requirements.txt
+  copy .env.example .env
+  python manage.py migrate
+  python manage.py bootstrap_roles
+  python manage.py seed_demo
+  python manage.py runserver
+
+Then open:  http://127.0.0.1:8000/django-admin/
+
+THE 13 STATIONS
+---------------
+  Itigi, Karatu, Liwale, Manyoni, Masasi, Mkalama, Mlimba,
+  Nachingwea, Newala, Ruangwa, Shelui, Singida, Utete
+
+  14 compliance types x 13 stations = 182 obligations.
+
+  NOTE: the GPS coordinates in the seed are district-centre estimates.
+  Replace them with each station's real reading before showing the map.
+
+LOGINS (created by seed_demo)
+-----------------------------
+  admin    / ChangeMe2026!    super admin        all 13 stations
+  officer  / ChangeMe2026!    compliance officer all 13 stations
+  john     / ChangeMe2026!    station manager    Singida only
+  neema    / ChangeMe2026!    station manager    5 Singida-region stations
+  juma     / ChangeMe2026!    station manager    Liwale, Nachingwea, Ruangwa
+  amina    / ChangeMe2026!    station manager    Masasi, Newala
+  baraka   / ChangeMe2026!    station manager    Karatu only
+
+Change these before anyone else touches it.
+
+WHAT WORKS RIGHT NOW
+--------------------
+  Setup > Compliance types    add a type -> auto-created on all 14 stations
+  Setup > Stations            add a station -> all 14 compliances auto-created
+  Setup > Users               assign role + stations (many-to-many)
+  Compliance periods          enter dates -> old period auto-superseded
+  python manage.py scan_compliance --dry-run    see what alerts would fire
+
+WHAT IS NOT BUILT YET
+---------------------
+  - Templates (the front-end HTML). Views and URLs are wired; the admin
+    is the working UI meanwhile.
+  - Renewal wizard screens.
+  - Weekly digest command.
+  - Per-recipient daily SMS cap. DO NOT set SMS_BACKEND=beem until this
+    exists - the scan currently sends ~200 SMS/day across 36 expired
+    obligations.
+
+USE POSTGRESQL
+--------------
+Edit .env:
+  DB_ENGINE=postgres
+  DB_NAME=rashal_compliance
+  DB_USER=postgres
+  DB_PASSWORD=yourpassword
+  DB_HOST=127.0.0.1
+  DB_PORT=5432
+
+Then: python manage.py migrate
+
+DAILY ALERT SCAN (cron / Task Scheduler, 06:00 EAT)
+---------------------------------------------------
+  cd /srv/rashal && python manage.py scan_compliance
+
+DO THIS TODAY
+-------------
+Apply for your Beem Africa sender ID. Approval takes days and can be
+rejected. It is the only part of this project not in your control - build
+the rest while you wait.
+
+Read README.md for the rules that must not be broken.

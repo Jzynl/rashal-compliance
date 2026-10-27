@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load compliance_tags %}
+{% block title %}Upload · {{ obligation.station.name }}{% endblock %}
+{% block crumb %}<div class="crumb">Compliance &gt;
+  <span>{{ obligation.compliance_type.short_code }} &gt; {{ obligation.station.name }} &gt; Upload</span></div>{% endblock %}
+{% block page_title %}Upload document{% endblock %}
+{% block page_sub %}{{ obligation.station.name }} · {{ obligation.compliance_type.name }}{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<div class="card" style="max-width:620px">
+  <form method="post" enctype="multipart/form-data" id="upform">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="msg error">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:8px">
+      {{ form.doc_type.label }}</label>
+    <div class="seg" role="radiogroup">
+      {% for value, label in form.fields.doc_type.choices %}
+        <label class="seg-opt">
+          <input type="radio" name="doc_type" value="{{ value }}"
+                 {% if form.doc_type.value == value %}checked{% endif %}>
+          <span>{{ label }}</span>
+        </label>
+      {% endfor %}
+    </div>
+    {% if form.doc_type.errors %}<div class="ferr">{{ form.doc_type.errors|join:" " }}</div>{% endif %}
+
+    <label style="display:block;font-size:13px;font-weight:600;margin:20px 0 8px">
+      File</label>
+
+    <label class="drop" id="drop">
+      <input type="file" name="file" id="file" accept=".pdf,.jpg,.jpeg,.png" hidden>
+      <div id="drop-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round" style="width:34px;height:34px">
+          <path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        <b>Tap to choose, or drag a file here</b>
+        <span>PDF or image · up to 10 MB</span>
+      </div>
+      <div id="drop-chosen" style="display:none">
+        <div id="thumb"></div>
+        <b id="fname"></b>
+        <span id="fsize"></span>
+        <button type="button" class="linky" id="clear">Choose a different file</button>
+      </div>
+    </label>
+    {% if form.file.errors %}<div class="ferr">{{ form.file.errors|join:" " }}</div>{% endif %}
+
+    <div style="display:flex;gap:10px;margin-top:22px">
+      <button type="submit" class="btn orange" id="submit">
+        <svg><use href="#i-dl"/></svg> Upload</button>
+      <a href="{{ obligation.get_absolute_url }}" class="btn">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<style>
+  .seg { display: flex; flex-wrap: wrap; gap: 8px; }
+  .seg-opt { position: relative; }
+  .seg-opt input { position: absolute; opacity: 0; }
+  .seg-opt span { display: inline-block; padding: 9px 16px; border-radius: 10px;
+                  border: 1px solid var(--line-2); font-size: 13px; font-weight: 500;
+                  color: var(--ink-2); cursor: pointer; }
+  .seg-opt input:checked + span { background: var(--green-tint); border-color: var(--green);
+                                  color: var(--green); font-weight: 600; }
+  .seg-opt input:focus-visible + span { outline: 2px solid var(--orange); outline-offset: 2px; }
+
+  .drop { display: flex; flex-direction: column; align-items: center; gap: 8px;
+          text-align: center; padding: 34px 20px; border: 2px dashed var(--green-line);
+          border-radius: 14px; background: var(--green-tint); cursor: pointer; }
+  .drop.over { border-color: var(--green); background: #E4F1E9; }
+  .drop b { font-size: 14px; color: var(--ink); }
+  .drop span { font-size: 12px; color: var(--muted); }
+  #thumb img { max-height: 120px; border-radius: 8px; }
+  #thumb .pdf { width: 44px; height: 44px; }
+  .linky { background: none; border: 0; color: var(--green); font-size: 13px;
+           font-weight: 600; cursor: pointer; text-decoration: underline; font-family: inherit; }
+  .ferr { color: var(--st-expired); font-size: 12.5px; margin-top: 6px; }
+
+  @media (max-width: 560px) {
+    .seg { flex-direction: column; }
+    .seg-opt span { display: block; text-align: center; }
+  }
+</style>
+
+<script>
+(function () {
+  var input = document.getElementById('file'),
+      drop  = document.getElementById('drop'),
+      empty = document.getElementById('drop-empty'),
+      chosen= document.getElementById('drop-chosen'),
+      fname = document.getElementById('fname'),
+      fsize = document.getElementById('fsize'),
+      thumb = document.getElementById('thumb'),
+      clear = document.getElementById('clear');
+
+  function human(bytes) {
+    var kb = bytes / 1024;
+    return kb < 1024 ? kb.toFixed(0) + ' KB' : (kb / 1024).toFixed(1) + ' MB';
+  }
+
+  function show(file) {
+    fname.textContent = file.name;
+    fsize.textContent = human(file.size);
+    thumb.innerHTML = '';
+    if (file.type.indexOf('image') === 0) {
+      var img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      thumb.appendChild(img);
+    } else {
+      thumb.innerHTML = '<svg class="pdf" viewBox="0 0 24 24" fill="none" ' +
+        'stroke="#C0392B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
+        '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/></svg>';
+    }
+    empty.style.display = 'none';
+    chosen.style.display = 'block';
+  }
+
+  input.addEventListener('change', function () {
+    if (input.files.length) show(input.files[0]);
+  });
+  clear.addEventListener('click', function (e) {
+    e.preventDefault(); input.value = '';
+    empty.style.display = ''; chosen.style.display = 'none';
+  });
+
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('over'); });
+  });
+  drop.addEventListener('drop', function (e) {
+    if (e.dataTransfer.files.length) { input.files = e.dataTransfer.files; show(input.files[0]); }
+  });
+})();
+</script>
+{% endblock %}

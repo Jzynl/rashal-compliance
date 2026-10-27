@@ -1,0 +1,19 @@
+﻿# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Django
+db.sqlite3
+staticfiles/
+private_media/
+
+# Secrets and data - NEVER commit these
+.env
+data_dump.json
+*.sql
+
+# OS
+.DS_Store
+Thumbs.db

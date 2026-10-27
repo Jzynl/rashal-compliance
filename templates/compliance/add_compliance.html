@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Add compliance{% endblock %}
+{% block crumb %}<div class="crumb">Compliance &gt; <span>Add</span></div>{% endblock %}
+{% block page_title %}Add compliance record{% endblock %}
+{% block page_sub %}Record a new certificate or a renewal. Attach the certificate and receipt here — no need for the admin.{% endblock %}
+
+{% block content %}
+<style>
+  .fwrap { max-width: 760px; }
+  .fcard { background:#fff; border-radius:14px; padding:24px;
+           box-shadow:0 1px 3px rgba(22,32,26,.06); margin-bottom:18px; }
+  .fcard h3 { margin:0 0 4px; font-size:16px; color:var(--green); }
+  .fcard .hint { font-size:12.5px; color:var(--muted); margin:0 0 16px; }
+  .frow { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .fld { margin-bottom:16px; }
+  .fld label { display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:var(--ink); }
+  .fld .req { color:var(--orange); }
+  .inp, .fld select, .fld input[type=date], .fld input[type=text], .fld input[type=number] {
+    width:100%; padding:11px 13px; font-size:14px; font-family:inherit;
+    border:1px solid var(--line-2); border-radius:10px; background:#fff; color:var(--ink);
+  }
+  .inp:focus { outline:none; border-color:var(--green); }
+  .fld .sub { font-size:12px; color:var(--muted); margin-top:5px; }
+  .filebox { border:2px dashed var(--line-2); border-radius:10px; padding:16px;
+             text-align:center; font-size:13px; color:var(--muted); }
+  .filebox input { margin-top:8px; }
+  .err { background:var(--st-expired-bg); color:var(--st-expired); font-size:13px;
+         padding:11px 14px; border-radius:10px; margin-bottom:16px; }
+  .err ul { margin:6px 0 0; padding-left:18px; }
+  .factions { display:flex; gap:12px; }
+  @media (max-width:620px){ .frow { grid-template-columns:1fr; } }
+</style>
+
+<div class="fwrap">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="err">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="fcard">
+      <h3>What and where</h3>
+      <p class="hint">Pick the station and the compliance type. If it's a renewal of one they already hold, the old certificate is kept as history automatically.</p>
+
+      <div class="frow">
+        <div class="fld">
+          <label>Station <span class="req">*</span></label>
+          {{ form.station }}
+          {% for e in form.station.errors %}<div class="sub" style="color:var(--st-expired)">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="fld">
+          <label>Compliance type <span class="req">*</span></label>
+          {{ form.compliance_type }}
+          {% for e in form.compliance_type.errors %}<div class="sub" style="color:var(--st-expired)">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="fld">
+        <label>Label</label>
+        {{ form.label }}
+        <div class="sub">Only if the station holds more than one of this type (e.g. one EWURA per fuel grade). Leave blank otherwise.</div>
+      </div>
+    </div>
+
+    <div class="fcard">
+      <h3>Certificate details</h3>
+      <p class="hint">The dates as printed on the certificate.</p>
+
+      <div class="fld">
+        <label>Certificate / licence number</label>
+        {{ form.certificate_number }}
+      </div>
+      <div class="frow">
+        <div class="fld">
+          <label>Start date <span class="req">*</span></label>
+          {{ form.start_date }}
+          {% for e in form.start_date.errors %}<div class="sub" style="color:var(--st-expired)">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="fld">
+          <label>Expiry date <span class="req">*</span></label>
+          {{ form.expiry_date }}
+          {% for e in form.expiry_date.errors %}<div class="sub" style="color:var(--st-expired)">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="fcard">
+      <h3>Payment</h3>
+      <p class="hint">Optional — fill in if a fee was paid.</p>
+      <div class="frow">
+        <div class="fld">
+          <label>Amount paid (TZS)</label>
+          {{ form.amount_paid }}
+        </div>
+        <div class="fld">
+          <label>Payment reference</label>
+          {{ form.payment_reference }}
+        </div>
+      </div>
+    </div>
+
+    <div class="fcard">
+      <h3>Documents</h3>
+      <p class="hint">Attach the scanned certificate and receipt. PDF, JPG or PNG, up to 10 MB each.</p>
+      <div class="frow">
+        <div class="fld">
+          <label>Certificate file</label>
+          <div class="filebox">{{ form.certificate_file }}</div>
+          {% for e in form.certificate_file.errors %}<div class="sub" style="color:var(--st-expired)">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="fld">
+          <label>Receipt file</label>
+          <div class="filebox">{{ form.receipt_file }}</div>
+          {% for e in form.receipt_file.errors %}<div class="sub" style="color:var(--st-expired)">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="factions">
+      <button type="submit" class="btn orange">Save compliance record</button>
+      <a href="{% url 'compliance:type_list' %}" class="btn">Cancel</a>
+    </div>
+  </form>
+</div>
+<script>
+(function () {
+  var validity = {{ type_validity|safe }};
+  var typeSel = document.getElementById("id_compliance_type");
+  var startEl = document.getElementById("id_start_date");
+  var expiryEl = document.getElementById("id_expiry_date");
+  var expiryTouched = false;
+
+  expiryEl.addEventListener("input", function () { expiryTouched = true; });
+
+  function suggest() {
+    if (expiryTouched) return;            // never override a hand-typed expiry
+    var months = validity[typeSel.value];
+    if (!months || !startEl.value) return;
+    var d = new Date(startEl.value);
+    if (isNaN(d)) return;
+    d.setMonth(d.getMonth() + months);
+    d.setDate(d.getDate() - 1);           // expiry is the day before the anniversary
+    expiryEl.value = d.toISOString().slice(0, 10);
+  }
+
+  typeSel.addEventListener("change", suggest);
+  startEl.addEventListener("change", suggest);
+})();
+</script>
+{% endblock %}

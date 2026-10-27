@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Compliance{% endblock %}
+{% block crumb %}<div class="crumb">Compliance</div>{% endblock %}
+{% block page_title %}Compliance{% endblock %}
+{% block page_sub %}Select a compliance type to view and manage its records.{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+{% if user.is_superuser %}
+<div class="controls">
+  <div class="search">
+    <svg><use href="#i-search"/></svg>
+    <input type="search" id="q" placeholder="Search here..." aria-label="Search compliance types">
+  </div>
+ <a href="{% url 'compliance:add_compliance' %}" class="btn orange">
+  <svg><use href="#i-plus"/></svg> Add compliance</a>
+</div>
+{% endif %}
+
+<div class="grid g3" id="cards">
+  {% for c in cards %}
+    <a href="{{ c.type.get_absolute_url }}" class="ccard top-{{ c.worst.css }}"
+       data-name="{{ c.type.short_code|lower }} {{ c.type.name|lower }}">
+      <h3 class="n-{{ c.worst.css }}">{{ c.type.short_code }}</h3>
+      <div class="auth">{{ c.type.issuing_authority }}</div>
+      <div class="foot">
+        <span><b style="color:var(--ink);font-size:16px">{{ c.station_count }}</b> stations</span>
+        <span class="n-{{ c.worst.css }}" style="font-weight:600">
+          {% if c.needs_attention %}{{ c.needs_attention }} need attention{% else %}All current{% endif %}</span>
+      </div>
+    </a>
+  {% empty %}
+    <div class="empty" style="grid-column:1/-1">No compliance types yet.</div>
+  {% endfor %}
+</div>
+
+<div class="card" style="margin-top:20px;display:flex;align-items:center;gap:14px">
+  <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.6"
+       stroke-linecap="round" stroke-linejoin="round" style="width:34px;height:34px;flex:none">
+    <path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
+  <div>
+    <b style="color:var(--green);font-size:15px">Stay compliant, stay protected.</b>
+    <div style="font-size:13px;color:var(--muted)">Keep your compliance records up to date and avoid penalties.</div>
+  </div>
+</div>
+
+{% if user.is_superuser %}
+<script>
+  var q = document.getElementById('q');
+  q.addEventListener('input', function () {
+    var t = q.value.trim().toLowerCase();
+    document.querySelectorAll('#cards a[data-name]').forEach(function (c) {
+      c.style.display = (!t || c.dataset.name.indexOf(t) > -1) ? '' : 'none';
+    });
+  });
+</script>
+{% endif %}
+{% endblock %}

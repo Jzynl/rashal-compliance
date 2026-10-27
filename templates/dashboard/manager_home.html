@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load compliance_tags %}
+{% block title %}{{ station.name|default:"My stations" }}{% endblock %}
+{% block page_title %}Welcome back, {{ user.first_name|default:user.username }}{% endblock %}
+{% block page_sub %}Here's what's happening with your
+  {% if station %}station{% else %}stations{% endif %} today.{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<div class="card" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+  <div style="display:flex;align-items:center;gap:14px">
+    <span style="width:44px;height:44px;border-radius:12px;background:var(--green-tint);
+                 display:grid;place-items:center;flex:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.7"
+           stroke-linecap="round" style="width:22px;height:22px">
+        <path d="M12 21s7-5.5 7-11a7 7 0 10-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+    </span>
+    <span>
+      <b style="font-size:17px">{% if station %}{{ station.name }} Station{% else %}{{ stations|length }} stations{% endif %}</b>
+      <div style="font-size:13px;color:var(--muted)">
+        {% if station %}{{ station.district }}, {{ station.get_region_display }} · {{ station.code }}
+        {% else %}{% for s in stations %}{{ s.name }}{% if not forloop.last %} · {% endif %}{% endfor %}{% endif %}</div>
+    </span>
+  </div>
+  <span style="text-align:right">
+    <div style="font-size:12px;color:var(--muted)">Last updated</div>
+    <b style="font-size:13px;color:var(--green)">{% now "d M Y, H:i" %}</b>
+  </span>
+</div>
+
+{% if attention %}
+<div class="sec"><h2>Needs your attention</h2></div>
+<div class="rule" style="margin-bottom:14px"></div>
+
+{% for sc in attention %}
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center;
+       gap:14px;margin-bottom:10px;
+       {% if sc.band.key == 'expired' or sc.band.key == 'critical' %}background:var(--st-expired-bg)
+       {% elif sc.band.key == 'warning' %}background:var(--st-soon-bg)
+       {% elif sc.band.key == 'processing' %}background:var(--st-proc-bg){% endif %}">
+    <span style="display:flex;align-items:center;gap:14px">
+      <span class="no dot-{{ sc.band.css }}" style="width:40px;height:40px">
+        {% if sc.band.key == 'processing' %}⏳{% elif sc.band.key == 'expired' %}!{% else %}!{% endif %}</span>
+      <span>
+        <b style="font-size:15.5px">{{ sc.compliance_type.short_code }}
+          {% if sc.band.key == 'expired' %}expired {{ sc.days_left|days_display }} days ago
+          {% elif sc.band.key == 'processing' %}— processing
+          {% else %}expires in {{ sc.days_left }} days{% endif %}
+          {% if stations|length > 1 %}<span style="color:var(--muted);font-weight:500">· {{ sc.station.name }}</span>{% endif %}</b>
+        <div style="font-size:13px;color:var(--ink-2)">
+          {% if sc.band.key == 'processing' %}
+            Receipt uploaded {{ sc.latest_period.processing_started_on|date:"d/m" }} · awaiting certificate
+          {% else %}
+            {% if sc.days_left < 0 %}Lapsed on{% else %}Expires on{% endif %}
+            {{ sc.current_period.expiry_date|date:"d/m/y" }} ·
+            {% if sc.is_in_processing %}renewal in progress{% else %}renewal not started{% endif %}
+          {% endif %}</div>
+      </span>
+    </span>
+    <a href="{{ sc.get_absolute_url }}" class="btn {% if sc.band.key == 'processing' %}{% else %}orange{% endif %}"
+       style="flex:none">
+      {% if sc.is_in_processing %}Upload certificate{% else %}Start renewal{% endif %}</a>
+  </div>
+  {% if sc.lapsed_period %}
+    {# Both truths. Showing only "processing" is how a manager relaxes
+       while the station is trading unlicensed. #}
+    <div style="font-size:12.5px;color:var(--st-expired);margin:-4px 0 12px 18px">
+      Previous licence expired {{ sc.lapsed_period.expiry_date|date:"d/m/y" }} — the station is not
+      covered while this renewal is in progress.</div>
+  {% endif %}
+{% endfor %}
+{% else %}
+  <div class="msg success">Nothing needs attention. Every compliance is current.</div>
+{% endif %}
+
+<div class="sec" style="margin-top:24px">
+  <h2>My compliances</h2>
+  <span style="font-size:13px;color:var(--green);font-weight:600">{{ obligations|length }} total</span>
+</div>
+<div class="rule" style="margin-bottom:14px"></div>
+
+<div class="grid g4">
+  {% for sc in obligations %}{% include "compliance/_card.html" %}{% endfor %}
+</div>
+
+{% include "compliance/_legend.html" %}
+{% endblock %}

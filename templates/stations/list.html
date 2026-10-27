@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Stations{% endblock %}
+{% block crumb %}<div class="crumb">Stations</div>{% endblock %}
+{% block page_title %}Stations{% endblock %}
+{% block page_sub %}All compliance stations across Tanzania.{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<div class="controls">
+  <div class="search">
+    <svg><use href="#i-search"/></svg>
+    <input type="search" id="q" placeholder="Search stations..." aria-label="Search stations">
+  </div>
+  {% if user.is_superuser %}
+    <a href="/django-admin/stations/station/add/" class="btn orange">
+      <svg><use href="#i-plus"/></svg> Add station</a>
+  {% endif %}
+</div>
+
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr>
+      <th style="width:70px">No.</th><th>Station</th><th>Code</th><th>Region</th>
+      <th>District</th><th style="text-align:right">To action</th>
+      <th class="mid">Status</th><th style="text-align:right">Actions</th>
+    </tr></thead>
+    <tbody id="rows">
+    {% for s in stations %}
+      <tr data-name="{{ s.name|lower }} {{ s.get_region_display|lower }}"
+          class="{% if s.map_band.key == 'expired' %}row-expired{% endif %}">
+        <td><span class="no dot-{{ s.map_band.css }}">{{ forloop.counter }}</span></td>
+        <td><a href="{{ s.get_absolute_url }}" class="st-name" style="color:var(--ink)">{{ s.name|upper }}</a></td>
+        <td><span class="chip">{{ s.code }}</span></td>
+        <td>{{ s.get_region_display }}</td>
+        <td style="color:var(--muted)">{{ s.district }}</td>
+        <td style="text-align:right;font-weight:700">{{ s.attention_count }}</td>
+        <td style="text-align:center"><span class="pill band-{{ s.map_band.css }}"><i></i>{{ s.map_band.label }}</span></td>
+        <td><div class="acts"><a href="{{ s.get_absolute_url }}" class="abtn">
+            <svg><use href="#i-arrow"/></svg> Open</a></div></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="8" class="empty">No stations yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  var q = document.getElementById('q');
+  q.addEventListener('input', function () {
+    var t = q.value.trim().toLowerCase();
+    document.querySelectorAll('#rows tr[data-name]').forEach(function (r) {
+      r.style.display = (!t || r.dataset.name.indexOf(t) > -1) ? '' : 'none';
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block page_title %}You can't open this page{% endblock %}
+{% block page_sub %}Your account covers specific stations. This record belongs to another one. If that's wrong, ask an administrator to update your station assignments.{% endblock %}
+{% block content %}
+<div class="card empty">
+  <a href="{% url 'dashboard:home' %}" class="btn solid">Back to dashboard</a>
+</div>
+{% endblock %}

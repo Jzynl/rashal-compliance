@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block page_title %}That page doesn't exist{% endblock %}
+{% block page_sub %}The link may be out of date, or the record was removed.{% endblock %}
+{% block content %}
+<div class="card empty">
+  <a href="{% url 'dashboard:home' %}" class="btn solid">Back to dashboard</a>
+</div>
+{% endblock %}

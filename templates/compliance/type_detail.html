@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load compliance_tags %}
+{% block title %}{{ ctype.short_code }} · Stations{% endblock %}
+{% block crumb %}<div class="crumb">Compliance &gt; <span>{{ ctype.short_code }}</span></div>{% endblock %}
+{% block page_title %}Stations{% endblock %}
+{% block page_sub %}View and manage compliance stations registered with {{ ctype.short_code }}.{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<div class="controls">
+  <div class="search">
+    <svg><use href="#i-search"/></svg>
+    <input type="search" id="q" placeholder="Search stations..." aria-label="Search stations">
+  </div>
+  <button class="filter" id="ft" type="button">
+    <svg><use href="#i-filter"/></svg> Filter
+  </button>
+</div>
+
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th style="width:70px">No.</th>
+        <th>Station</th>
+        <th>{{ ctype.short_code }}{% if ctype.short_code == 'EWURA' %} (PRL){% endif %}</th>
+        <th>Begin</th>
+        <th>End</th>
+        <th class="mid">Status</th>
+        <th style="text-align:right">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="rows">
+    {% for sc in rows %}
+      <tr data-name="{{ sc.station.name|lower }}" data-band="{{ sc.band.key }}"
+          class="row-{{ sc.band.css }}">
+        <td><span class="no dot-{{ sc.band.css }}">{{ forloop.counter }}</span></td>
+        <td><a href="{{ sc.get_absolute_url }}" class="st-name"
+               style="color:var(--ink)">{{ sc.station.name|upper }}</a></td>
+        <td>{% if sc.current_period.certificate_number %}
+              <span class="chip">{{ sc.current_period.certificate_number }}</span>
+            {% else %}<span style="color:var(--faint)">—</span>{% endif %}</td>
+        <td><span class="dt"><svg><use href="#i-cal"/></svg>
+            {{ sc.current_period.start_date|date:"d/m/Y"|default:"—" }}</span></td>
+        <td><span class="dt"><svg><use href="#i-cal"/></svg>
+            {{ sc.current_period.expiry_date|date:"d/m/Y"|default:"—" }}</span></td>
+        <td style="text-align:center">
+          <span class="pill band-{{ sc.band.css }}"><i></i>{{ sc.band.label }}</span>
+        </td>
+        <td>
+          <div class="acts">
+            {% with cert=sc.current_period.certificate %}
+            {% if cert %}
+              <button type="button" class="abtn view-doc"
+                      data-url="{{ cert.get_absolute_url }}"
+                      data-name="{{ sc.station.name }} · {{ sc.compliance_type.short_code }} certificate"
+                      data-pdf="{{ cert.is_pdf|yesno:'1,0' }}">
+                <svg><use href="#i-cert"/></svg> View certificate</button>
+            {% else %}
+              <span class="abtn off"><svg><use href="#i-cert"/></svg> No certificate</span>
+            {% endif %}
+            {% endwith %}
+            {% with rcpt=sc.current_period.receipt %}
+            {% if rcpt %}
+              <button type="button" class="abtn o view-doc"
+                      data-url="{{ rcpt.get_absolute_url }}"
+                      data-name="{{ sc.station.name }} · {{ sc.compliance_type.short_code }} receipt"
+                      data-pdf="{{ rcpt.is_pdf|yesno:'1,0' }}">
+                <svg><use href="#i-receipt"/></svg> View receipt</button>
+            {% else %}
+              <span class="abtn off"><svg><use href="#i-receipt"/></svg> No receipt</span>
+            {% endif %}
+            {% endwith %}
+          </div>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7" class="empty">No stations hold this compliance yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% include "compliance/_legend.html" %}
+
+<script>
+(function () {
+  var q = document.getElementById('q'), rows = document.querySelectorAll('#rows tr[data-name]');
+  var only = null, ft = document.getElementById('ft');
+  function apply() {
+    var t = q.value.trim().toLowerCase();
+    rows.forEach(function (r) {
+      var okName = !t || r.dataset.name.indexOf(t) > -1;
+      var okBand = !only || r.dataset.band === only;
+      r.style.display = (okName && okBand) ? '' : 'none';
+    });
+  }
+  q.addEventListener('input', apply);
+  var cycle = [null, 'expired', 'critical', 'warning', 'processing'];
+  var labels = ['Filter', 'Expired', 'Critical', 'Expiring soon', 'Processing'];
+  var at = 0;
+  ft.addEventListener('click', function () {
+    at = (at + 1) % cycle.length;
+    only = cycle[at];
+    ft.lastChild.textContent = ' ' + labels[at];
+    ft.style.borderColor = only ? 'var(--green)' : 'var(--line-2)';
+    apply();
+  });
+})();
+</script>
+
+{% include "compliance/_viewer.html" %}
+{% endblock %}

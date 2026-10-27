@@ -1,0 +1,197 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in · {{ BRAND.company_name }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/app.css' %}">
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--page);
+         font-family: "Inter", system-ui, sans-serif; }
+
+  /* Two real columns. No absolute positioning, no magic percentages —
+     the panel and the form each own their half and stay put at any width. */
+  .login {
+    display: grid;
+    grid-template-columns: minmax(340px, 5fr) minmax(360px, 6fr);
+    min-height: 100vh;
+  }
+
+  /* Left: brand panel. */
+  .panel {
+    position: relative; overflow: hidden;
+    background: linear-gradient(160deg, #0B6E3F 0%, #06522E 100%);
+    color: #fff; padding: 48px 52px;
+    display: flex; flex-direction: column;
+  }
+  .panel::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(130% 80% at 50% 120%, rgba(4,44,24,.9), transparent 60%),
+      repeating-linear-gradient(118deg, rgba(255,255,255,.035) 0 2px, transparent 2px 30px);
+  }
+  .brand { position: relative; z-index: 1; }
+  .brand h1 { font-size: 38px; font-weight: 700; margin: 0; letter-spacing: -1px;
+              line-height: .9; color: #fff; }
+  .brand h1 span { color: #F26522; }
+  .brand .sub { font-size: 20px; font-weight: 700; letter-spacing: 2px;
+                color: #F26522; margin-top: 2px; }
+  .brand em { font-size: 13px; font-style: italic; color: #B8E0CB; display: block; margin-top: 4px; }
+
+  .panel-copy { position: relative; z-index: 1; margin-top: auto; }
+  .panel-copy h2 { font-size: 34px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.6px; }
+  .panel-copy p { font-size: 16px; color: #CFE7DA; line-height: 1.55; margin: 0 0 20px; max-width: 340px; }
+  .panel-copy .bar { width: 60px; height: 4px; background: #F26522; border-radius: 2px; }
+
+  /* Right: form column, card centred in it. */
+  .form-col { display: flex; align-items: center; justify-content: center;
+              padding: 40px 24px; }
+  .box { width: 100%; max-width: 420px; }
+
+  .seal { width: 72px; height: 72px; border-radius: 50%; background: var(--green-tint);
+          display: grid; place-items: center; margin: 0 auto 18px; }
+  .seal svg { width: 34px; height: 34px; }
+  .box h3 { font-size: 25px; font-weight: 700; text-align: center; margin: 0 0 6px;
+            color: var(--ink); letter-spacing: -0.4px; }
+  .box .lede { text-align: center; color: var(--muted); font-size: 15px; margin: 0 0 28px; }
+
+  label { display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 7px; }
+  .field { position: relative; margin-bottom: 18px; }
+  .field .lead { position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+                 width: 18px; height: 18px; stroke: var(--faint); fill: none; stroke-width: 1.8;
+                 pointer-events: none; }
+  .field input { width: 100%; padding: 14px 15px 14px 46px; font-size: 15px; font-family: inherit;
+                 color: var(--ink); border: 1.5px solid var(--line-2); border-radius: 11px;
+                 background: #fff; }
+  .field input::placeholder { color: var(--faint); }
+  .field input:focus { outline: none; border-color: var(--green); }
+  .field.has-peek input { padding-right: 46px; }
+  .peek { position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+          width: 20px; height: 20px; stroke: var(--faint); fill: none; stroke-width: 1.8;
+          cursor: pointer; background: none; border: 0; padding: 0; }
+
+  .row { display: flex; justify-content: space-between; align-items: center;
+         gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+  .check { display: flex; align-items: center; gap: 9px; font-size: 14px;
+           color: var(--ink-2); cursor: pointer; user-select: none; }
+  .check input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .check .tick { width: 20px; height: 20px; border-radius: 6px; background: var(--green);
+                 display: grid; place-items: center; flex: none; }
+  .check .tick svg { width: 12px; height: 12px; stroke: #fff; stroke-width: 3.5; fill: none; }
+  .check input:not(:checked) + .tick { background: #fff; border: 1.5px solid #D5DBD7; }
+  .check input:not(:checked) + .tick svg { visibility: hidden; }
+  .check input:focus-visible + .tick { outline: 2px solid var(--orange); outline-offset: 2px; }
+  .forgot { font-size: 14px; color: var(--green); font-weight: 500; }
+
+  .signin { width: 100%; padding: 15px; font-size: 16px; font-weight: 600; color: #fff;
+            background: var(--green); border: 0; border-radius: 11px; cursor: pointer;
+            font-family: inherit; }
+  .signin:hover { background: var(--green-dark); }
+
+  .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 26px;
+          padding-top: 18px; border-top: 1px solid var(--line); }
+  .foot b { color: var(--green); font-weight: 600; }
+  .err { background: var(--orange-tint); border: 1px solid var(--orange); color: var(--orange-text);
+         border-radius: 11px; padding: 12px 15px; font-size: 14px; margin-bottom: 20px; }
+
+  /* Single collapse point. Below it the panel becomes a compact header strip
+     so the brand is still present but the form owns the screen. */
+  @media (max-width: 800px) {
+    .login { grid-template-columns: 1fr; }
+    .panel { padding: 28px 24px; min-height: 0; }
+    .panel-copy { margin-top: 20px; }
+    .panel-copy h2 { font-size: 26px; }
+    .panel-copy p { font-size: 14px; margin-bottom: 0; }
+    .form-col { padding: 28px 20px 44px; }
+  }
+  @media (max-width: 420px) {
+    .panel { padding: 22px 18px; }
+    .brand h1 { font-size: 30px; }
+    .box h3 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="login">
+
+  <div class="panel">
+    <div class="brand">
+      <h1>Rasha<span>l</span></h1>
+      <div class="sub">ENERGIES</div>
+      <em>{{ BRAND.tagline }}</em>
+    </div>
+    <div class="panel-copy">
+      <h2>Welcome back!</h2>
+      <p>Sign in to access the compliance management system.</p>
+      <div class="bar"></div>
+    </div>
+  </div>
+
+  <div class="form-col">
+    <div class="box">
+      <div class="seal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
+      </div>
+      <h3>Sign in to your account</h3>
+      <p class="lede">Enter your credentials to continue</p>
+
+      {% if form.errors %}
+        <div class="err">That username and password don't match an account. Check both and try again.</div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <label for="id_username">Email or username</label>
+        <div class="field">
+          <svg class="lead" viewBox="0 0 24 24" stroke-linecap="round">
+            <circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
+          <input type="text" name="username" id="id_username" autocomplete="username"
+                 placeholder="Enter your email or username" autofocus required>
+        </div>
+
+        <label for="id_password">Password</label>
+        <div class="field has-peek">
+          <svg class="lead" viewBox="0 0 24 24" stroke-linecap="round">
+            <rect x="5" y="10.5" width="14" height="9.5" rx="2"/>
+            <path d="M8.5 10.5V7.5a3.5 3.5 0 017 0v3"/></svg>
+          <input type="password" name="password" id="id_password"
+                 autocomplete="current-password" placeholder="Enter your password" required>
+          <button type="button" class="peek" id="peek" aria-label="Show password">
+            <svg viewBox="0 0 24 24" stroke-linecap="round">
+              <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.8"/></svg>
+          </button>
+        </div>
+
+        <div class="row">
+          <label class="check">
+            <input type="checkbox" name="remember" checked>
+            <span class="tick"><svg viewBox="0 0 24 24" stroke-linecap="round"
+                  stroke-linejoin="round"><path d="M4 12l6 6L20 6"/></svg></span>
+            Remember me
+          </label>
+          <a href="{% url 'accounts:password_change' %}" class="forgot">Forgot password?</a>
+        </div>
+
+        <input type="hidden" name="next" value="{{ next }}">
+        <button type="submit" class="signin">Sign In</button>
+      </form>
+
+      <div class="foot">&copy; {% now "Y" %} <b>{{ BRAND.company_name }}</b>. All rights reserved.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  var peek = document.getElementById('peek'), pw = document.getElementById('id_password');
+  peek.addEventListener('click', function () {
+    pw.type = pw.type === 'password' ? 'text' : 'password';
+  });
+</script>
+</body>
+</html>

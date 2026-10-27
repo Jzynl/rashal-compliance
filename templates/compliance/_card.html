@@ -1,0 +1,18 @@
+{% load compliance_tags %}
+<a href="{{ sc.get_absolute_url }}" class="ccard top-{{ sc.band.css }}">
+  <h3>{{ sc.compliance_type.short_code }}</h3>
+  <div class="auth" style="min-height:0;margin-bottom:10px">{{ sc.compliance_type.issuing_authority|truncatechars:34 }}</div>
+  {% if sc.band.key == 'processing' %}
+    <div class="n n-processing" style="font-size:19px">Processing</div>
+    <div class="d">Awaiting certificate</div>
+  {% elif sc.days_left is None %}
+    <div class="n n-unknown">—</div><div class="d">No dates yet</div>
+  {% else %}
+    <div class="n n-{{ sc.band.css }}">{{ sc.days_left|days_display }} <small>days</small></div>
+    <div class="d">{% if sc.days_left < 0 %}Lapsed on{% else %}Expires on{% endif %}
+      {{ sc.current_period.expiry_date|date:"d/m/y" }}</div>
+  {% endif %}
+  <div class="foot" style="justify-content:center">
+    <span class="pill band-{{ sc.band.css }}"><i></i>{{ sc.band.label }}</span>
+  </div>
+</a>

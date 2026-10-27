@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load compliance_tags %}
+{% block title %}Matrix{% endblock %}
+{% block crumb %}<div class="crumb">Compliance &gt; <span>Matrix</span></div>{% endblock %}
+{% block page_title %}Matrix{% endblock %}
+{% block page_sub %}{{ grid|length }} stations x {{ types|length }} types. Every cell is days remaining.{% endblock %}
+
+{% block content %}
+<div class="card" style="overflow-x:auto">
+  <table class="mx">
+    <thead><tr>
+      <th class="st">Station</th>
+      {% for t in types %}<th title="{{ t.name }}">{{ t.short_code }}</th>{% endfor %}
+    </tr></thead>
+    <tbody>
+    {% for row in grid %}
+      <tr>
+        <td class="st"><a href="{{ row.station.get_absolute_url }}">{{ row.station.name }}</a></td>
+        {% for sc in row.cells %}
+          {% if sc %}
+            <td class="c cell-{{ sc.band.css }}" title="{{ sc.station.name }} · {{ sc.compliance_type.short_code }} — {{ sc.band.label }}">
+              <a href="{{ sc.get_absolute_url }}">
+                {% if sc.band.key == 'processing' %}···
+                {% elif sc.days_left is not None %}{{ sc.days_left|days_display }}
+                {% else %}—{% endif %}</a></td>
+          {% else %}<td class="c cell-unknown">—</td>{% endif %}
+        {% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "compliance/_legend.html" %}
+{% endblock %}
