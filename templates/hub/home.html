@@ -16,8 +16,10 @@
   *{box-sizing:border-box}
   body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--ink);
     background:var(--bg);-webkit-font-smoothing:antialiased}
-  .top{background:#fff;color:var(--ink);padding:12px 22px;
-    display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--line)}
+  .top{background:#fff;color:var(--ink);padding:14px 24px;position:relative;
+    display:flex;align-items:center;gap:14px;box-shadow:0 1px 12px rgba(4,61,34,.06)}
+  .top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;
+    background:linear-gradient(90deg,var(--orange) 0%,var(--green) 55%,var(--dark) 100%)}
   .brand{display:inline-flex;align-items:center}
   .brand img{height:42px;width:auto;display:block}
   .top .spacer{flex:1}
