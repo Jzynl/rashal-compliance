@@ -18,10 +18,8 @@
     background:var(--bg);-webkit-font-smoothing:antialiased}
   .top{background:var(--dark);color:#fff;padding:14px 22px;
     display:flex;align-items:center;gap:14px}
-  .brand{display:flex;flex-direction:column;line-height:1}
-  .brand b{font-size:17px;letter-spacing:.5px}
-  .brand span{font-size:9px;letter-spacing:3px;color:var(--mint);margin-top:3px}
-  .brand em{font-size:9px;font-style:italic;color:var(--orange);margin-top:3px}
+  .brand{background:#fff;border-radius:10px;padding:6px 12px;display:inline-flex;align-items:center}
+  .brand img{height:36px;width:auto;display:block}
   .top .spacer{flex:1}
   .who{display:flex;align-items:center;gap:10px;font-size:13px}
   .who .av{display:inline-flex;align-items:center;justify-content:center;
@@ -58,7 +56,7 @@
 <body>
   <header class="top">
     <div class="brand">
-      <b>Rashal</b><span>PETROLEUM</span><em>{{ BRAND.tagline }}</em>
+      <img src="{% static 'img/logo.png' %}" alt="{{ BRAND.company_name }}">
     </div>
     <div class="spacer"></div>
     <div class="who">
