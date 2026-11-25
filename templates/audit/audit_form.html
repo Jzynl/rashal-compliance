@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == 'edit' %}Edit audit{% else %}New audit{% endif %}{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'audit:audit_list' %}">Audit</a> ›
+  {% if mode == 'edit' %}Edit{% else %}New{% endif %}</div>{% endblock %}
+{% block page_title %}{% if mode == 'edit' %}Edit audit{% else %}New audit{% endif %}{% endblock %}
+
+{% block content %}
+<style>
+  .eform{max-width:560px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+  .fld{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+  .fld.full{grid-column:1 / -1}
+  .fld label{font-size:12.5px;color:var(--muted,#6b7a70);font-weight:600}
+  .fld input,.fld select,.fld textarea{padding:9px 10px;border:1px solid var(--line,#dfe7e2);border-radius:9px;font:inherit;font-size:14px;background:#fff}
+  .fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--orange,#F26522)}
+  .ferr{color:#b5361f;font-size:12px}
+  .formacts{display:flex;gap:10px;margin-top:4px}
+</style>
+
+<form method="post" class="eform" novalidate>
+  {% csrf_token %}
+  <div class="grid2">
+    <div class="fld full"><label>Station</label>{{ form.station }}
+      {% if form.station.errors %}<div class="ferr">{{ form.station.errors|striptags }}</div>{% endif %}</div>
+    <div class="fld full"><label>Checklist (optional)</label>{{ form.template }}</div>
+    <div class="fld full"><label>Title</label>{{ form.title }}
+      {% if form.title.errors %}<div class="ferr">{{ form.title.errors|striptags }}</div>{% endif %}</div>
+    <div class="fld"><label>Date</label>{{ form.audit_date }}</div>
+    <div class="fld"><label>Auditor</label>{{ form.auditor_name }}</div>
+    <div class="fld"><label>Status</label>{{ form.status }}</div>
+    <div class="fld full"><label>Summary (optional)</label>{{ form.summary }}</div>
+  </div>
+  <div class="formacts">
+    <a href="{% url 'audit:audit_list' %}" class="btn">Cancel</a>
+    <button type="submit" class="btn orange">{% if mode == 'edit' %}Save{% else %}Create{% endif %}</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Statutory membership{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'foundation:employee_list' %}">People</a> › Statutory</div>{% endblock %}
+{% block page_title %}Statutory membership{% endblock %}
+{% block page_sub %}Who is registered for NSSF, NHIF, WCF and TIN. Blanks are flagged.{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+<style>.miss{color:#b5361f;font-weight:700}</style>
+
+<div class="controls">
+  <a href="{% url 'foundation:employee_list' %}" class="btn"><svg><use href="#i-arrow"/></svg> Back to people</a>
+  <div></div>
+</div>
+
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr>
+      <th>Employee</th><th>Location</th><th>NSSF / PF</th><th>NHIF</th><th>WCF</th><th>TIN</th>
+    </tr></thead>
+    <tbody>
+    {% for e in employees %}
+      <tr>
+        <td style="font-weight:600"><a href="{% url 'foundation:employee_detail' e.pk %}" style="color:var(--ink)">{{ e.full_name }}</a></td>
+        <td>{{ e.station.name|default:"HQ" }}</td>
+        <td>{% if e.nssf_number %}{{ e.nssf_number }}{% else %}<span class="miss">missing</span>{% endif %}</td>
+        <td>{% if e.nhif_number %}{{ e.nhif_number }}{% else %}<span class="miss">missing</span>{% endif %}</td>
+        <td>{% if e.wcf_number %}{{ e.wcf_number }}{% else %}<span class="miss">missing</span>{% endif %}</td>
+        <td>{% if e.tin %}{{ e.tin }}{% else %}<span class="miss">missing</span>{% endif %}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6" class="empty">No active employees.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

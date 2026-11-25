@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Delete audit{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'audit:audit_list' %}">Audit</a> › Delete</div>{% endblock %}
+{% block page_title %}Delete audit{% endblock %}
+
+{% block content %}
+<p style="font-size:14px">Delete <strong>{{ audit.title }}</strong> ({{ audit.station.name }}) and all its findings?</p>
+<form method="post" style="display:flex;gap:10px;margin-top:12px">
+  {% csrf_token %}
+  <a href="{% url 'audit:audit_detail' audit.pk %}" class="btn">Cancel</a>
+  <button type="submit" class="btn orange">Delete</button>
+</form>
+{% endblock %}

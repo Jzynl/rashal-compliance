@@ -1,0 +1,118 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ BRAND.company_name }} · Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --orange:#F26522; --green:#0F8B4F; --dark:#043D22;
+    --cream:#FBE0D0; --mint:#DFF0E6; --ink:#1a241d; --mut:#6b7a70;
+    --line:#e4ece7; --card:#ffffff; --bg:#f4f8f5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--ink);
+    background:var(--bg);-webkit-font-smoothing:antialiased}
+  .top{background:var(--dark);color:#fff;padding:14px 22px;
+    display:flex;align-items:center;gap:14px}
+  .brand{display:flex;flex-direction:column;line-height:1}
+  .brand b{font-size:17px;letter-spacing:.5px}
+  .brand span{font-size:9px;letter-spacing:3px;color:var(--mint);margin-top:3px}
+  .brand em{font-size:9px;font-style:italic;color:var(--orange);margin-top:3px}
+  .top .spacer{flex:1}
+  .who{display:flex;align-items:center;gap:10px;font-size:13px}
+  .who .av{display:inline-flex;align-items:center;justify-content:center;
+    width:32px;height:32px;border-radius:50%;background:var(--orange);
+    color:#fff;font-weight:600;font-size:12px}
+  .who .nm{font-weight:600}
+  .who .rl{font-size:11px;color:var(--mint)}
+  .who a{color:#fff;opacity:.8;display:inline-flex}
+  .who a:hover{opacity:1}
+  .wrap{max-width:980px;margin:0 auto;padding:34px 22px 60px}
+  .lead h1{margin:0 0 4px;font-size:24px}
+  .lead p{margin:0 0 26px;color:var(--mut);font-size:14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+    gap:16px}
+  .tile{position:relative;display:block;text-decoration:none;color:inherit;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:20px 18px 18px;overflow:hidden;transition:transform .12s,box-shadow .12s}
+  .tile .stripe{position:absolute;top:0;left:0;right:0;height:4px}
+  .tile.orange .stripe{background:var(--orange)}
+  .tile.green .stripe{background:var(--green)}
+  a.tile:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(4,61,34,.10)}
+  .tile .ic{font-size:26px;line-height:1;margin-bottom:12px}
+  .tile h3{margin:0 0 5px;font-size:15px}
+  .tile p{margin:0;font-size:12.5px;color:var(--mut);line-height:1.45}
+  .tile.soon{opacity:.72}
+  .tag{position:absolute;top:14px;right:14px;font-size:9.5px;font-weight:600;
+    letter-spacing:.6px;text-transform:uppercase;padding:3px 7px;border-radius:20px}
+  .tile.soon .tag{background:var(--mint);color:var(--green)}
+  .empty{background:#fff;border:1px dashed var(--line);border-radius:14px;
+    padding:30px;text-align:center;color:var(--mut);font-size:13px}
+  .foot{margin-top:34px;font-size:11.5px;color:var(--mut)}
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <b>Rashal</b><span>PETROLEUM</span><em>{{ BRAND.tagline }}</em>
+    </div>
+    <div class="spacer"></div>
+    <div class="who">
+      <span class="av">{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}</span>
+      <span>
+        <div class="nm">{{ user.get_full_name|default:user.username }}</div>
+        <div class="rl">{{ user.role_label }}</div>
+      </span>
+      <a href="#" title="Sign out"
+         onclick="event.preventDefault();document.getElementById('lo').submit();">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/>
+          <path d="M21 12H9"/></svg></a>
+      <form id="lo" method="post" action="{% url 'accounts:logout' %}" style="display:none">
+        {% csrf_token %}</form>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="lead">
+      <h1>Welcome{% if user.first_name %}, {{ user.first_name }}{% endif %}</h1>
+      <p>Choose a module to get started.</p>
+    </div>
+
+    {% if modules %}
+    <div class="grid">
+      {% for m in modules %}
+        {% if m.status == 'live' %}
+          <a class="tile {{ m.accent }}" href="{% url m.url_name %}">
+            <span class="stripe"></span>
+            <div class="ic">{{ m.icon }}</div>
+            <h3>{{ m.label }}</h3>
+            <p>{{ m.description }}</p>
+          </a>
+        {% else %}
+          <div class="tile {{ m.accent }} soon">
+            <span class="stripe"></span>
+            <span class="tag">Coming soon</span>
+            <div class="ic">{{ m.icon }}</div>
+            <h3>{{ m.label }}</h3>
+            <p>{{ m.description }}</p>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+      No modules are assigned to your account yet. Please ask an administrator
+      to give you a role.
+    </div>
+    {% endif %}
+
+    <div class="foot">{{ BRAND.company_name }} · Rashal One</div>
+  </main>
+</body>
+</html>

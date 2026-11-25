@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Delete balance{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'leave:balance_list' %}">Leave</a> › Delete</div>{% endblock %}
+{% block page_title %}Delete leave balance{% endblock %}
+
+{% block content %}
+<p style="font-size:14px">Delete the {{ balance.leave_type.name }} {{ balance.year }} balance for
+  <strong>{{ balance.employee.full_name }}</strong>?</p>
+<form method="post" style="display:flex;gap:10px;margin-top:12px">
+  {% csrf_token %}
+  <a href="{% url 'leave:balance_list' %}" class="btn">Cancel</a>
+  <button type="submit" class="btn orange">Delete</button>
+</form>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Delete incident{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'incidents:list' %}">Incidents</a> › Delete</div>{% endblock %}
+{% block page_title %}Delete incident{% endblock %}
+
+{% block content %}
+<p style="font-size:14px">Delete <strong>{{ incident.title }}</strong> ({{ incident.station.name }}, {{ incident.occurred_on|date:"d M Y" }})?</p>
+<form method="post" style="display:flex;gap:10px;margin-top:12px">
+  {% csrf_token %}
+  <a href="{% url 'incidents:detail' incident.pk %}" class="btn">Cancel</a>
+  <button type="submit" class="btn orange">Delete</button>
+</form>
+{% endblock %}

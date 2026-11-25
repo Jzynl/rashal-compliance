@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ incident.title }}{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'incidents:list' %}">Incidents</a> › {{ incident.title }}</div>{% endblock %}
+{% block page_title %}{{ incident.title }}{% endblock %}
+{% block page_sub %}{{ incident.station.name }} · {{ incident.occurred_on|date:"d M Y" }}{% if incident.occurred_time %} {{ incident.occurred_time|time:"H:i" }}{% endif %}{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+<style>
+  .ainfo{background:#fff;border:1px solid var(--line,#e4ece7);border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:13.5px}
+  .ainfo dl{margin:0;display:grid;grid-template-columns:130px 1fr;gap:7px 10px}
+  .ainfo dt{color:var(--muted,#6b7a70)}
+  .ainfo dd{margin:0;white-space:pre-wrap}
+  .topacts{display:flex;gap:10px;margin-bottom:14px}
+</style>
+
+<div class="topacts">
+  <a href="{% url 'incidents:list' %}" class="btn"><svg><use href="#i-arrow"/></svg> Back</a>
+  <a href="{% url 'incidents:edit' incident.pk %}" class="btn orange">Edit</a>
+  <a href="{% url 'incidents:delete' incident.pk %}" class="btn">Delete</a>
+</div>
+
+<div class="ainfo">
+  <dl>
+    <dt>Station</dt><dd>{{ incident.station.name }}</dd>
+    <dt>Category</dt><dd>{{ incident.get_category_display }}</dd>
+    <dt>Severity</dt><dd>{{ incident.get_severity_display }}</dd>
+    <dt>Status</dt><dd>{{ incident.get_status_display }}</dd>
+    <dt>Reported by</dt><dd>{{ incident.reported_by|default:"—" }}</dd>
+    <dt>What happened</dt><dd>{{ incident.description|default:"—" }}</dd>
+    <dt>Action taken</dt><dd>{{ incident.action_taken|default:"—" }}</dd>
+  </dl>
+</div>
+{% endblock %}

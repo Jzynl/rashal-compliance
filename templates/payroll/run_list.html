@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Payroll{% endblock %}
+{% block crumb %}<div class="crumb">Payroll</div>{% endblock %}
+{% block page_title %}Payroll{% endblock %}
+{% block page_sub %}Monthly salary payment runs and the NMB bank file.{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<div class="controls">
+  <a href="{% url 'payroll:retr_list' %}" class="btn">Retrenchment payouts</a>
+  <a href="{% url 'payroll:run_add' %}" class="btn orange">
+    <svg><use href="#i-plus"/></svg> New pay run</a>
+</div>
+
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr>
+      <th>Month</th><th>Reference</th><th style="text-align:right">People</th>
+      <th style="text-align:right">Total (TZS)</th><th class="mid">Status</th>
+      <th style="text-align:right">Actions</th>
+    </tr></thead>
+    <tbody>
+    {% for run in runs %}
+      <tr>
+        <td><a href="{% url 'payroll:run_detail' run.pk %}" style="color:var(--ink);font-weight:600">{{ run }}</a></td>
+        <td><span class="chip">{{ run.reference }}</span></td>
+        <td style="text-align:right">{{ run.headcount }}</td>
+        <td style="text-align:right;font-weight:700">{{ run.total_amount|floatformat:0|intcomma }}</td>
+        <td style="text-align:center">
+          {% if run.is_final %}<span class="pill band-ok"><i></i>Finalised</span>
+          {% else %}<span class="pill band-warn"><i></i>Draft</span>{% endif %}</td>
+        <td><div class="acts">
+          <a href="{% url 'payroll:run_detail' run.pk %}" class="abtn">
+            <svg><use href="#i-arrow"/></svg> Open</a></div></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6" class="empty">No pay runs yet. Click “New pay run” to start one.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

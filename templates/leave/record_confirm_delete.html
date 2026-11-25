@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Delete leave{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'leave:record_list' %}">Leave</a> › Delete</div>{% endblock %}
+{% block page_title %}Delete leave record{% endblock %}
+
+{% block content %}
+<p style="font-size:14px">Delete the leave record for
+  <strong>{{ record.employee.full_name }}</strong>
+  ({{ record.leave_type.name }}, {{ record.start_date|date:"d M Y" }}–{{ record.end_date|date:"d M Y" }})?</p>
+<form method="post" style="display:flex;gap:10px;margin-top:12px">
+  {% csrf_token %}
+  <a href="{% url 'leave:record_list' %}" class="btn">Cancel</a>
+  <button type="submit" class="btn orange">Delete</button>
+</form>
+{% endblock %}

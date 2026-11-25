@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Leave{% endblock %}
+{% block crumb %}<div class="crumb">Leave</div>{% endblock %}
+{% block page_title %}Leave{% endblock %}
+{% block page_sub %}Annual and sick leave records.{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<div class="controls">
+  <form method="get" style="display:flex;gap:8px;align-items:center">
+    <select name="employee" onchange="this.form.submit()"
+            style="padding:8px 10px;border:1px solid var(--line,#dfe7e2);border-radius:9px;font:inherit">
+      <option value="">All employees</option>
+      {% for e in employees %}
+        <option value="{{ e.pk }}" {% if selected_employee == e.pk|stringformat:'s' %}selected{% endif %}>{{ e.full_name }}</option>
+      {% endfor %}
+    </select>
+    <a href="{% url 'leave:type_list' %}" class="btn">Leave types</a>
+  </form>
+  <a href="{% url 'leave:record_add' %}" class="btn orange"><svg><use href="#i-plus"/></svg> Record leave</a>
+</div>
+
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr>
+      <th>Employee</th><th>Type</th><th>From</th><th>To</th>
+      <th style="text-align:right">Days</th><th class="mid">Status</th>
+      <th style="text-align:right">Actions</th>
+    </tr></thead>
+    <tbody>
+    {% for r in records %}
+      <tr>
+        <td style="font-weight:600">{{ r.employee.full_name }}</td>
+        <td>{{ r.leave_type.name }}</td>
+        <td>{{ r.start_date|date:"d M Y" }}</td>
+        <td>{{ r.end_date|date:"d M Y" }}</td>
+        <td style="text-align:right;font-weight:700">{{ r.days|floatformat:"-1" }}</td>
+        <td style="text-align:center">
+          {% if r.status == 'approved' %}<span class="pill band-ok"><i></i>Approved</span>
+          {% elif r.status == 'pending' %}<span class="pill band-warn"><i></i>Pending</span>
+          {% else %}<span class="pill band-expired"><i></i>{{ r.get_status_display }}</span>{% endif %}</td>
+        <td><div class="acts">
+          <a href="{% url 'leave:record_edit' r.pk %}" class="abtn">Edit</a>
+          <a href="{% url 'leave:record_delete' r.pk %}" class="abtn">Delete</a></div></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7" class="empty">No leave recorded yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

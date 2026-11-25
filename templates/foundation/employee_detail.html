@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}{{ emp.full_name }}{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'foundation:employee_list' %}">People</a> ›
+  {{ emp.full_name }}</div>{% endblock %}
+{% block page_title %}{{ emp.full_name }}{% endblock %}
+{% block page_sub %}{{ emp.title_display|default:"Employee" }}{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<style>
+  .pcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:4px}
+  .pcard{background:#fff;border:1px solid var(--line,#e4ece7);border-radius:14px;padding:16px 18px}
+  .pcard h3{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--green,#0F8B4F)}
+  .pcard dl{margin:0;display:grid;grid-template-columns:130px 1fr;gap:7px 10px;font-size:13.5px}
+  .pcard dt{color:var(--muted,#6b7a70)}
+  .pcard dd{margin:0;color:var(--ink,#1a241d);font-weight:500}
+  .pcard.sens{border-color:#f3d9c9;background:#fffaf6}
+  .pcard.sens h3{color:var(--orange,#F26522)}
+  .topacts{display:flex;gap:10px;margin:0 0 14px}
+</style>
+
+<div class="topacts">
+  <a href="{% url 'foundation:employee_list' %}" class="btn">
+    <svg><use href="#i-arrow"/></svg> Back</a>
+  <a href="{% url 'foundation:employee_edit' emp.pk %}" class="btn orange">Edit</a>
+</div>
+
+<div class="pcards">
+  <div class="pcard">
+    <h3>Person</h3>
+    <dl>
+      <dt>Full name</dt><dd>{{ emp.full_name }}</dd>
+      <dt>Gender</dt><dd>{{ emp.get_gender_display|default:"—" }}</dd>
+      <dt>Date of birth</dt><dd>{{ emp.date_of_birth|date:"d M Y"|default:"—" }}</dd>
+      <dt>National ID</dt><dd>{{ emp.national_id|default:"—" }}</dd>
+      <dt>Phone</dt><dd>{{ emp.phone|default:"—" }}</dd>
+    </dl>
+  </div>
+
+  <div class="pcard">
+    <h3>Employment</h3>
+    <dl>
+      <dt>Station</dt><dd>{{ emp.station.name|default:"Head office" }}</dd>
+      <dt>Department</dt><dd>{{ emp.department.name|default:"—" }}</dd>
+      <dt>Title</dt><dd>{{ emp.title_display|default:"—" }}</dd>
+      <dt>Category</dt><dd>{{ emp.get_employment_category_display|default:"—" }}</dd>
+      <dt>Joined</dt><dd>{{ emp.date_joined|date:"d M Y"|default:"—" }}</dd>
+      <dt>Left</dt><dd>{{ emp.date_left|date:"d M Y"|default:"—" }}</dd>
+      <dt>Status</dt><dd>{% if emp.is_active %}Active{% else %}Left{% endif %}</dd>
+      <dt>Login</dt><dd>{% if emp.user %}{{ emp.user.username }}{% else %}No login account{% endif %}</dd>
+    </dl>
+  </div>
+
+  <div class="pcard sens">
+    <h3>Banking</h3>
+    <dl>
+      <dt>Bank</dt><dd>{{ emp.bank_name|default:"—" }}</dd>
+      <dt>Branch</dt><dd>{{ emp.bank_branch|default:"—" }}</dd>
+      <dt>Account no.</dt><dd>{{ emp.bank_account_number|default:"—" }}</dd>
+    </dl>
+  </div>
+
+  <div class="pcard sens">
+    <h3>Statutory membership</h3>
+    <dl>
+      <dt>NSSF / PF</dt><dd>{{ emp.nssf_number|default:"—" }}</dd>
+      <dt>NHIF</dt><dd>{{ emp.nhif_number|default:"—" }}</dd>
+      <dt>WCF</dt><dd>{{ emp.wcf_number|default:"—" }}</dd>
+      <dt>TIN</dt><dd>{{ emp.tin|default:"—" }}</dd>
+    </dl>
+  </div>
+</div>
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin:26px 0 10px">
+  <h2 style="font-size:16px;margin:0">Training &amp; certifications</h2>
+  <a href="{% url 'foundation:credential_add' %}?employee={{ emp.pk }}" class="btn orange">
+    <svg><use href="#i-plus"/></svg> Add</a>
+</div>
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr><th>Type</th><th>Title</th><th>Provider</th><th>Issued</th><th>Expires</th>
+      <th class="mid">Status</th><th style="text-align:right">Actions</th></tr></thead>
+    <tbody>
+    {% for cr in credentials %}
+      <tr>
+        <td>{{ cr.get_kind_display }}</td>
+        <td style="font-weight:600">{{ cr.title }}</td>
+        <td>{{ cr.provider|default:"—" }}</td>
+        <td>{{ cr.issue_date|date:"d M Y"|default:"—" }}</td>
+        <td>{{ cr.expiry_date|date:"d M Y"|default:"—" }}</td>
+        <td style="text-align:center">
+          {% if cr.status == 'valid' %}<span class="pill band-ok"><i></i>Valid</span>
+          {% elif cr.status == 'expiring' %}<span class="pill band-warn"><i></i>Expiring</span>
+          {% elif cr.status == 'expired' %}<span class="pill band-expired"><i></i>Expired</span>
+          {% else %}—{% endif %}</td>
+        <td><div class="acts">
+          <a href="{% url 'foundation:credential_edit' cr.pk %}" class="abtn">Edit</a>
+          <a href="{% url 'foundation:credential_delete' cr.pk %}" class="abtn">Delete</a></div></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7" class="empty">No training or certifications recorded.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

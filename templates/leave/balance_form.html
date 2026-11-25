@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == 'edit' %}Edit balance{% else %}Add balance{% endif %}{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'leave:balance_list' %}">Leave</a> ›
+  {% if mode == 'edit' %}Edit{% else %}Add{% endif %}</div>{% endblock %}
+{% block page_title %}{% if mode == 'edit' %}Edit leave balance{% else %}Add leave balance{% endif %}{% endblock %}
+
+{% block content %}
+<style>
+  .eform{max-width:560px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+  .fld{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+  .fld.full{grid-column:1 / -1}
+  .fld label{font-size:12.5px;color:var(--muted,#6b7a70);font-weight:600}
+  .fld input,.fld select{padding:9px 10px;border:1px solid var(--line,#dfe7e2);border-radius:9px;font:inherit;font-size:14px;background:#fff}
+  .fld input:focus,.fld select:focus{outline:none;border-color:var(--orange,#F26522)}
+  .ferr{color:#b5361f;font-size:12px}
+  .formacts{display:flex;gap:10px;margin-top:4px}
+</style>
+
+<form method="post" class="eform" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="ferr">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="grid2">
+    <div class="fld full"><label>Employee</label>{{ form.employee }}
+      {% if form.employee.errors %}<div class="ferr">{{ form.employee.errors|striptags }}</div>{% endif %}</div>
+    <div class="fld"><label>Leave type</label>{{ form.leave_type }}</div>
+    <div class="fld"><label>Year</label>{{ form.year }}</div>
+    <div class="fld"><label>Allowed (blank = from type)</label>{{ form.allowed }}</div>
+    <div class="fld"><label>Status</label>{{ form.status }}</div>
+    <div class="fld"><label>Taken — 1st</label>{{ form.taken_first }}</div>
+    <div class="fld"><label>Taken — 2nd (annual only)</label>{{ form.taken_second }}</div>
+    <div class="fld full"><label>Note (optional)</label>{{ form.note }}</div>
+  </div>
+  {% if form.non_field_errors %}{% endif %}
+  <div class="formacts">
+    <a href="{% url 'leave:balance_list' %}" class="btn">Cancel</a>
+    <button type="submit" class="btn orange">{% if mode == 'edit' %}Save{% else %}Add{% endif %}</button>
+  </div>
+</form>
+{% endblock %}

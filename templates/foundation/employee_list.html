@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}People{% endblock %}
+{% block crumb %}<div class="crumb">People &amp; Organisation</div>{% endblock %}
+{% block page_title %}People{% endblock %}
+{% block page_sub %}Everyone on the Rashal payroll.{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<div class="controls">
+  <div style="display:flex;gap:8px;align-items:center">
+    <div class="search">
+      <svg><use href="#i-search"/></svg>
+      <input type="search" id="q" placeholder="Search people..." aria-label="Search people">
+    </div>
+    {% if companies %}
+    <form method="get">
+      <select name="company" onchange="this.form.submit()" style="padding:9px 10px;border:1px solid var(--line,#dfe7e2);border-radius:9px;font:inherit">
+        <option value="">All companies</option>
+        {% for co in companies %}
+          <option value="{{ co.pk }}" {% if sel_company == co.pk|stringformat:'s' %}selected{% endif %}>{{ co.name }}</option>
+        {% endfor %}
+      </select>
+    </form>
+    {% endif %}
+  </div>
+  <div style="display:flex;gap:8px">
+    <a href="{% url 'foundation:statutory_list' %}" class="btn">Statutory</a>
+    <a href="{% url 'foundation:credential_list' %}" class="btn">Training &amp; certs</a>
+    <a href="{% url 'foundation:employee_add' %}" class="btn orange">
+      <svg><use href="#i-plus"/></svg> Add employee</a>
+  </div>
+</div>
+
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr>
+      <th style="width:60px">No.</th><th>Name</th><th>Company</th><th>Station</th>
+      <th>Department</th><th>Title</th><th>Category</th>
+      <th class="mid">Status</th><th style="text-align:right">Actions</th>
+    </tr></thead>
+    <tbody id="rows">
+    {% for e in employees %}
+      <tr data-name="{{ e.full_name|lower }} {{ e.job_title|lower }} {{ e.national_id|lower }}">
+        <td><span class="no">{{ forloop.counter }}</span></td>
+        <td><a href="{% url 'foundation:employee_detail' e.pk %}"
+               style="color:var(--ink);font-weight:600">{{ e.full_name }}</a></td>
+        <td>{{ e.organisation.name|default:"—" }}</td>
+        <td>{% if e.station %}{{ e.station.name }}{% else %}<span style="color:var(--muted)">Head office</span>{% endif %}</td>
+        <td>{{ e.department.name|default:"—" }}</td>
+        <td>{{ e.title_display|default:"—" }}</td>
+        <td>{{ e.get_employment_category_display|default:"—" }}</td>
+        <td style="text-align:center">
+          {% if e.is_active %}<span class="pill band-ok"><i></i>Active</span>
+          {% else %}<span class="pill band-expired"><i></i>Left</span>{% endif %}</td>
+        <td><div class="acts">
+          <a href="{% url 'foundation:employee_detail' e.pk %}" class="abtn">
+            <svg><use href="#i-arrow"/></svg> Open</a></div></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="9" class="empty">No employees yet. Click “Add employee” to start.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  var q = document.getElementById('q');
+  q.addEventListener('input', function () {
+    var t = q.value.trim().toLowerCase();
+    document.querySelectorAll('#rows tr[data-name]').forEach(function (r) {
+      r.style.display = (!t || r.dataset.name.indexOf(t) > -1) ? '' : 'none';
+    });
+  });
+</script>
+{% endblock %}

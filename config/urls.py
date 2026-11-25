@@ -10,7 +10,13 @@ urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("compliance/", include("compliance.urls")),
     path("stations/", include("stations.urls")),
-    path("", include("dashboard.urls")),
+    path("people/", include("foundation.urls")),
+    path("payroll/", include("payroll.urls")),
+    path("leave/", include("leave.urls")),
+    path("audit/", include("audit.urls")),
+    path("incidents/", include("incidents.urls")),
+    path("dashboard/", include("dashboard.urls")),
+    path("", include("hub.urls")),
 ]
 
 admin.site.site_header = "Rashal Energies · Compliance"

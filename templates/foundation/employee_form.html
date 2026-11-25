@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == 'edit' %}Edit employee{% else %}Add employee{% endif %}{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'foundation:employee_list' %}">People</a> ›
+  {% if mode == 'edit' %}Edit{% else %}Add{% endif %}</div>{% endblock %}
+{% block page_title %}{% if mode == 'edit' %}Edit employee{% else %}Add employee{% endif %}{% endblock %}
+{% block page_sub %}{% if mode == 'edit' %}{{ emp.full_name }}{% else %}A new person on the payroll.{% endif %}{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<style>
+  .eform{max-width:760px}
+  .eform fieldset{border:1px solid var(--line,#e4ece7);border-radius:14px;padding:16px 18px 6px;margin:0 0 16px}
+  .eform legend{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--green,#0F8B4F);
+    font-weight:600;padding:0 6px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+  .fld{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+  .fld.full{grid-column:1 / -1}
+  .fld label{font-size:12.5px;color:var(--muted,#6b7a70);font-weight:600}
+  .fld input,.fld select{padding:9px 10px;border:1px solid var(--line,#dfe7e2);border-radius:9px;
+    font:inherit;font-size:14px;background:#fff}
+  .fld input:focus,.fld select:focus{outline:none;border-color:var(--orange,#F26522)}
+  .req{color:var(--orange,#F26522)}
+  .ferr{color:#b5361f;font-size:12px;margin-top:3px}
+  .formacts{display:flex;gap:10px;margin-top:4px}
+  .nonfield{background:#fff3ef;border:1px solid #f3d9c9;color:#8a3a22;padding:10px 12px;
+    border-radius:9px;margin-bottom:14px;font-size:13px}
+</style>
+
+<form method="post" class="eform" novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="nonfield">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <fieldset>
+    <legend>Person</legend>
+    <div class="grid2">
+      <div class="fld"><label>First name <span class="req">*</span></label>
+        {{ form.first_name }}{% if form.first_name.errors %}<div class="ferr">{{ form.first_name.errors|striptags }}</div>{% endif %}</div>
+      <div class="fld"><label>Middle name</label>{{ form.middle_name }}</div>
+      <div class="fld"><label>Last name <span class="req">*</span></label>
+        {{ form.last_name }}{% if form.last_name.errors %}<div class="ferr">{{ form.last_name.errors|striptags }}</div>{% endif %}</div>
+      <div class="fld"><label>Gender</label>{{ form.gender }}</div>
+      <div class="fld"><label>Date of birth</label>{{ form.date_of_birth }}</div>
+      <div class="fld"><label>National ID (NIDA)</label>{{ form.national_id }}</div>
+      <div class="fld"><label>Phone</label>{{ form.phone }}</div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Employment</legend>
+    <div class="grid2">
+      <div class="fld"><label>Organisation</label>{{ form.organisation }}</div>
+      <div class="fld"><label>Station (blank = head office)</label>{{ form.station }}</div>
+      <div class="fld"><label>Department</label>{{ form.department }}</div>
+      <div class="fld"><label>Position</label>{{ form.position }}</div>
+      <div class="fld"><label>Job title</label>{{ form.job_title }}</div>
+      <div class="fld"><label>Category</label>{{ form.employment_category }}</div>
+      <div class="fld"><label>Date joined</label>{{ form.date_joined }}</div>
+      <div class="fld"><label>Date left</label>{{ form.date_left }}</div>
+      <div class="fld"><label>Active</label>{{ form.is_active }}</div>
+      <div class="fld"><label>Linked login account</label>{{ form.user }}</div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Banking</legend>
+    <div class="grid2">
+      <div class="fld"><label>Bank name</label>{{ form.bank_name }}</div>
+      <div class="fld"><label>Branch</label>{{ form.bank_branch }}</div>
+      <div class="fld full"><label>Account number</label>{{ form.bank_account_number }}</div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Statutory membership</legend>
+    <div class="grid2">
+      <div class="fld"><label>NSSF / PF number</label>{{ form.nssf_number }}</div>
+      <div class="fld"><label>NHIF number</label>{{ form.nhif_number }}</div>
+      <div class="fld"><label>WCF number</label>{{ form.wcf_number }}</div>
+      <div class="fld"><label>Employee TIN</label>{{ form.tin }}</div>
+    </div>
+  </fieldset>
+
+  <div class="formacts">
+    <a href="{% url 'foundation:employee_list' %}" class="btn">Cancel</a>
+    <button type="submit" class="btn orange">
+      {% if mode == 'edit' %}Save changes{% else %}Add employee{% endif %}</button>
+  </div>
+</form>
+{% endblock %}

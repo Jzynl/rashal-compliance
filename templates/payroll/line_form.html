@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == 'edit' %}Edit line{% else %}Add person{% endif %}{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'payroll:run_list' %}">Payroll</a> ›
+  <a href="{% url 'payroll:run_detail' run.pk %}">{{ run }}</a> ›
+  {% if mode == 'edit' %}Edit{% else %}Add person{% endif %}</div>{% endblock %}
+{% block page_title %}{% if mode == 'edit' %}Edit payment{% else %}Add person to {{ run }}{% endif %}{% endblock %}
+{% block page_sub %}The name and account are what print on the bank file.{% endblock %}
+
+{% block content %}
+<style>
+  .eform{max-width:520px}
+  .fld{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+  .fld label{font-size:12.5px;color:var(--muted,#6b7a70);font-weight:600}
+  .fld input,.fld select{padding:9px 10px;border:1px solid var(--line,#dfe7e2);border-radius:9px;font:inherit;font-size:14px;background:#fff}
+  .fld input:focus,.fld select:focus{outline:none;border-color:var(--orange,#F26522)}
+  .fld.check{flex-direction:row;align-items:center;gap:8px}
+  .ferr{color:#b5361f;font-size:12px}
+  .formacts{display:flex;gap:10px;margin-top:4px}
+</style>
+
+<form method="post" class="eform" novalidate>
+  {% csrf_token %}
+  <div class="fld"><label>Beneficiary name</label>{{ form.beneficiary_name }}
+    {% if form.beneficiary_name.errors %}<div class="ferr">{{ form.beneficiary_name.errors|striptags }}</div>{% endif %}</div>
+  <div class="fld"><label>Beneficiary account</label>{{ form.beneficiary_account }}</div>
+  <div class="fld"><label>Amount (TZS)</label>{{ form.amount }}
+    {% if form.amount.errors %}<div class="ferr">{{ form.amount.errors|striptags }}</div>{% endif %}</div>
+  <div class="fld"><label>Narration (blank = SALARY)</label>{{ form.narration }}</div>
+  <div class="fld check">{{ form.include }}<label style="margin:0">Include in the bank file</label></div>
+  <div class="formacts">
+    <a href="{% url 'payroll:run_detail' run.pk %}" class="btn">Cancel</a>
+    <button type="submit" class="btn orange">{% if mode == 'edit' %}Save{% else %}Add{% endif %}</button>
+  </div>
+</form>
+{% endblock %}

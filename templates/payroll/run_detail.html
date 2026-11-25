@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}{{ run }}{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'payroll:run_list' %}">Payroll</a> › {{ run }}</div>{% endblock %}
+{% block page_title %}{{ run }}{% endblock %}
+{% block page_sub %}Reference {{ run.reference }} · {{ run.destination }} · {{ run.narration }}{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<style>
+  .pay-sum{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .pay-sum .box{background:#fff;border:1px solid var(--line,#e4ece7);border-radius:12px;padding:12px 16px;min-width:150px}
+  .pay-sum .box b{display:block;font-size:22px;color:var(--ink,#1a241d)}
+  .pay-sum .box span{font-size:12px;color:var(--muted,#6b7a70);text-transform:uppercase;letter-spacing:.5px}
+  .actbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  .actbar form{display:inline}
+  .right-amt{text-align:right;font-variant-numeric:tabular-nums}
+  .final-note{background:#eafaf0;border:1px solid #bfe6cf;color:#145c34;padding:10px 12px;border-radius:9px;margin-bottom:14px;font-size:13px}
+</style>
+
+<div class="pay-sum">
+  <div class="box"><span>People</span><b>{{ run.headcount }}</b></div>
+  <div class="box"><span>Total (TZS)</span><b>{{ run.total_amount|floatformat:0|intcomma }}</b></div>
+  <div class="box"><span>Status</span><b style="font-size:15px;padding-top:6px">
+    {% if run.is_final %}Finalised{% else %}Draft{% endif %}</b></div>
+</div>
+
+{% if run.is_final %}
+  <div class="final-note">This run is finalised and locked. Download the bank file below, or reopen it to make changes.</div>
+{% endif %}
+
+<div class="actbar">
+  {% if not run.is_final %}
+    <a href="{% url 'payroll:line_add' run.pk %}" class="btn orange"><svg><use href="#i-plus"/></svg> Add person</a>
+    <form method="post" action="{% url 'payroll:populate' run.pk %}">{% csrf_token %}
+      <button class="btn" type="submit">Add all active employees</button></form>
+    <form method="post" action="{% url 'payroll:copy_previous' run.pk %}">{% csrf_token %}
+      <button class="btn" type="submit">Copy from previous run</button></form>
+  {% endif %}
+
+  <a href="{% url 'payroll:export_xlsx' run.pk %}" class="btn"><svg><use href="#i-dl"/></svg> Download Excel (NMB)</a>
+  <a href="{% url 'payroll:export_csv' run.pk %}" class="btn"><svg><use href="#i-dl"/></svg> Download CSV</a>
+
+  {% if run.is_final %}
+    <form method="post" action="{% url 'payroll:reopen' run.pk %}">{% csrf_token %}
+      <button class="btn" type="submit">Reopen</button></form>
+  {% else %}
+    <a href="{% url 'payroll:run_edit' run.pk %}" class="btn">Edit run details</a>
+    <form method="post" action="{% url 'payroll:finalise' run.pk %}">{% csrf_token %}
+      <button class="btn orange" type="submit">Finalise</button></form>
+  {% endif %}
+</div>
+
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr>
+      <th style="width:50px">No.</th><th>Beneficiary</th><th>Account</th>
+      <th class="right-amt">Amount (TZS)</th><th class="mid">In file?</th>
+      {% if not run.is_final %}<th style="text-align:right">Actions</th>{% endif %}
+    </tr></thead>
+    <tbody>
+    {% for line in lines %}
+      <tr {% if not line.include %}style="opacity:.5"{% endif %}>
+        <td><span class="no">{{ forloop.counter }}</span></td>
+        <td style="font-weight:600">{{ line.beneficiary_name }}</td>
+        <td>{{ line.beneficiary_account|default:"—" }}</td>
+        <td class="right-amt" style="font-weight:700">{{ line.amount|floatformat:0|intcomma }}</td>
+        <td style="text-align:center">{% if line.include %}Yes{% else %}No{% endif %}</td>
+        {% if not run.is_final %}
+        <td><div class="acts">
+          <a href="{% url 'payroll:line_edit' line.pk %}" class="abtn">Edit</a>
+          <form method="post" action="{% url 'payroll:line_delete' line.pk %}" style="display:inline"
+                onsubmit="return confirm('Remove {{ line.beneficiary_name|escapejs }} from this run?');">
+            {% csrf_token %}<button class="abtn" type="submit">Delete</button></form>
+        </div></td>
+        {% endif %}
+      </tr>
+    {% empty %}
+      <tr><td colspan="{% if run.is_final %}5{% else %}6{% endif %}" class="empty">
+        No people in this run yet. Use “Add all active employees” or “Copy from previous run”, then set amounts.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

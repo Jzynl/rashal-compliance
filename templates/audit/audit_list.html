@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Audit{% endblock %}
+{% block crumb %}<div class="crumb">Audit</div>{% endblock %}
+{% block page_title %}Audit{% endblock %}
+{% block page_sub %}Station audits and their findings.{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<div class="controls">
+  <div></div>
+  <a href="{% url 'audit:audit_add' %}" class="btn orange"><svg><use href="#i-plus"/></svg> New audit</a>
+</div>
+
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr>
+      <th>Audit</th><th>Station</th><th>Date</th><th>Auditor</th>
+      <th style="text-align:right">Findings</th><th class="mid">Status</th>
+      <th style="text-align:right">Actions</th>
+    </tr></thead>
+    <tbody>
+    {% for a in audits %}
+      <tr>
+        <td><a href="{% url 'audit:audit_detail' a.pk %}" style="color:var(--ink);font-weight:600">{{ a.title }}</a></td>
+        <td>{{ a.station.name }}</td>
+        <td>{{ a.audit_date|date:"d M Y"|default:"—" }}</td>
+        <td>{{ a.auditor_name|default:"—" }}</td>
+        <td style="text-align:right">{{ a.open_findings_count }} open / {{ a.total_findings_count }}</td>
+        <td style="text-align:center">
+          {% if a.status == 'completed' %}<span class="pill band-ok"><i></i>Completed</span>
+          {% elif a.status == 'in_progress' %}<span class="pill band-warn"><i></i>In progress</span>
+          {% else %}<span class="pill band-active"><i></i>Planned</span>{% endif %}</td>
+        <td><div class="acts"><a href="{% url 'audit:audit_detail' a.pk %}" class="abtn">
+          <svg><use href="#i-arrow"/></svg> Open</a></div></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7" class="empty">No audits yet. Click “New audit” to start.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -56,6 +56,12 @@ INSTALLED_APPS = [
     "compliance",
     "alerts",
     "dashboard",
+    "foundation",
+    "hub",
+    "payroll",
+    "leave",
+    "audit",
+    "incidents",
 ]
 
 MIDDLEWARE = [
@@ -136,7 +142,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LOGIN_URL = "accounts:login"
-LOGIN_REDIRECT_URL = "dashboard:home"
+LOGIN_REDIRECT_URL = "hub:home"
 LOGOUT_REDIRECT_URL = "accounts:login"
 
 
@@ -162,7 +168,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Every file is streamed through compliance.views.serve_document, which
 # checks the user's station scope first. Do not add a media route to urls.py
 # and do not point nginx at MEDIA_ROOT.
-MEDIA_ROOT = BASE_DIR / "private_media"
+MEDIA_ROOT = env("MEDIA_ROOT", BASE_DIR / "private_media")
 MEDIA_URL = None
 
 FILE_UPLOAD_PERMISSIONS = 0o600
@@ -232,33 +238,15 @@ REPEATING_ALERT_THRESHOLDS = [7, 0]
 # ---------------------------------------------------------------------------
 
 if not DEBUG:
+    # These are env-readable so the server can run over plain HTTP (behind a
+    # proxy without TLS) without the "session expired" cookie loop. On a real
+    # HTTPS domain, set all three to 1 in the server .env.
     SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", True)
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = env_bool("SESSION_COOKIE_SECURE", True)
+    CSRF_COOKIE_SECURE = env_bool("CSRF_COOKIE_SECURE", True)
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = "DENY"
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
-
-# ---------------------------------------------------------------------------
-# Logging
-# ---------------------------------------------------------------------------
-
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "simple": {"format": "{levelname} {asctime} {name} {message}", "style": "{"},
-    },
-    "handlers": {
-        "console": {"class": "logging.StreamHandler", "formatter": "simple"},
-    },
-    "root": {"handlers": ["console"], "level": "INFO"},
-    "loggers": {
-        "alerts": {"handlers": ["console"], "level": "INFO", "propagate": False},
-        "compliance": {"handlers": ["console"], "level": "INFO", "propagate": False},
-    },
-}

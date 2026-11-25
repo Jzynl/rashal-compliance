@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Leave{% endblock %}
+{% block crumb %}<div class="crumb">Leave</div>{% endblock %}
+{% block page_title %}Leave{% endblock %}
+{% block page_sub %}Leave balances by employee — allowed, taken and remaining.{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<style>
+  .neg{color:#b5361f;font-weight:700}
+  .seltools{display:flex;gap:8px;align-items:center}
+  .seltools select{padding:8px 10px;border:1px solid var(--line,#dfe7e2);border-radius:9px;font:inherit}
+</style>
+
+<div class="controls">
+  <form method="get" class="seltools">
+    <select name="type" onchange="this.form.submit()">
+      {% for t in types %}
+        <option value="{{ t.pk }}" {% if sel_type and sel_type.pk == t.pk %}selected{% endif %}>{{ t.name }}</option>
+      {% endfor %}
+    </select>
+    <select name="year" onchange="this.form.submit()">
+      {% for y in years %}<option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>{% endfor %}
+    </select>
+    <a href="{% url 'leave:type_list' %}" class="btn">Leave types</a>
+  </form>
+  <a href="{% url 'leave:balance_add' %}" class="btn orange"><svg><use href="#i-plus"/></svg> Add balance</a>
+</div>
+
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr>
+      <th>Employee</th><th>Location</th>
+      <th style="text-align:right">Allowed</th><th style="text-align:right">Taken 1st</th>
+      <th style="text-align:right">Taken 2nd</th><th style="text-align:right">Remaining</th>
+      <th class="mid">Status</th><th style="text-align:right">Actions</th>
+    </tr></thead>
+    <tbody>
+    {% for b in balances %}
+      <tr>
+        <td style="font-weight:600">{{ b.employee.full_name }}</td>
+        <td>{{ b.employee.station.name|default:"HQ" }}</td>
+        <td style="text-align:right">{{ b.allowed }}</td>
+        <td style="text-align:right">{{ b.taken_first|floatformat:"-1" }}</td>
+        <td style="text-align:right">{{ b.taken_second|floatformat:"-1" }}</td>
+        <td style="text-align:right" class="{% if b.remaining < 0 %}neg{% else %}{% endif %}">{{ b.remaining|floatformat:"-1" }}</td>
+        <td style="text-align:center">{% if b.status %}<span class="pill {% if b.status == 'paid' %}band-ok{% else %}band-active{% endif %}"><i></i>{{ b.get_status_display }}</span>{% else %}—{% endif %}</td>
+        <td><div class="acts">
+          <a href="{% url 'leave:balance_edit' b.pk %}" class="abtn">Edit</a>
+          <a href="{% url 'leave:balance_delete' b.pk %}" class="abtn">Delete</a></div></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="8" class="empty">No balances for {{ sel_type.name }} in {{ year }}. Add one, or import from your sheets.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

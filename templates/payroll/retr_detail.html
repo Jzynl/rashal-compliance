@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}{{ batch.title }} {{ batch.year }}{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'payroll:retr_list' %}">Retrenchment</a> › {{ batch.title }} {{ batch.year }}</div>{% endblock %}
+{% block page_title %}{{ batch.title }} {{ batch.year }}{% endblock %}
+{% block page_sub %}{{ batch.station.name|default:"All locations" }} · {{ batch.description }}{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<style>
+  .pay-sum{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .pay-sum .box{background:#fff;border:1px solid var(--line,#e4ece7);border-radius:12px;padding:12px 16px;min-width:150px}
+  .pay-sum .box b{display:block;font-size:22px}
+  .pay-sum .box span{font-size:12px;color:var(--muted,#6b7a70);text-transform:uppercase;letter-spacing:.5px}
+  .actbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  .actbar form{display:inline}
+  .right-amt{text-align:right;font-variant-numeric:tabular-nums}
+</style>
+
+<div class="pay-sum">
+  <div class="box"><span>People</span><b>{{ batch.headcount }}</b></div>
+  <div class="box"><span>Total (TZS)</span><b>{{ batch.total_amount|floatformat:0|intcomma }}</b></div>
+  <div class="box"><span>Status</span><b style="font-size:15px;padding-top:6px">{% if batch.is_final %}Finalised{% else %}Draft{% endif %}</b></div>
+</div>
+
+<div class="actbar">
+  {% if not batch.is_final %}
+    <a href="{% url 'payroll:retr_payment_add' batch.pk %}" class="btn orange"><svg><use href="#i-plus"/></svg> Add person</a>
+    <a href="{% url 'payroll:retr_edit' batch.pk %}" class="btn">Edit batch</a>
+  {% endif %}
+  <a href="{% url 'payroll:retr_export_xlsx' batch.pk %}" class="btn"><svg><use href="#i-dl"/></svg> Download Excel</a>
+  <a href="{% url 'payroll:retr_export_csv' batch.pk %}" class="btn"><svg><use href="#i-dl"/></svg> Download CSV</a>
+  {% if batch.is_final %}
+    <form method="post" action="{% url 'payroll:retr_reopen' batch.pk %}">{% csrf_token %}<button class="btn" type="submit">Reopen</button></form>
+  {% else %}
+    <form method="post" action="{% url 'payroll:retr_finalise' batch.pk %}">{% csrf_token %}<button class="btn orange" type="submit">Finalise</button></form>
+  {% endif %}
+</div>
+
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr>
+      <th style="width:50px">No.</th><th>Name</th><th>Account</th>
+      <th class="right-amt">Amount (TZS)</th><th>Bank</th><th>Branch</th>
+      {% if not batch.is_final %}<th style="text-align:right">Actions</th>{% endif %}
+    </tr></thead>
+    <tbody>
+    {% for p in payments %}
+      <tr {% if not p.include %}style="opacity:.5"{% endif %}>
+        <td><span class="no">{{ forloop.counter }}</span></td>
+        <td style="font-weight:600">{{ p.name }}</td>
+        <td>{{ p.account_no|default:"—" }}</td>
+        <td class="right-amt" style="font-weight:700">{{ p.amount|floatformat:0|intcomma }}</td>
+        <td>{{ p.bank|default:"—" }}</td>
+        <td>{{ p.branch|default:"—" }}</td>
+        {% if not batch.is_final %}
+        <td><div class="acts">
+          <a href="{% url 'payroll:retr_payment_edit' p.pk %}" class="abtn">Edit</a>
+          <form method="post" action="{% url 'payroll:retr_payment_delete' p.pk %}" style="display:inline"
+                onsubmit="return confirm('Remove {{ p.name|escapejs }}?');">{% csrf_token %}
+            <button class="abtn" type="submit">Delete</button></form>
+        </div></td>
+        {% endif %}
+      </tr>
+    {% empty %}
+      <tr><td colspan="{% if batch.is_final %}6{% else %}7{% endif %}" class="empty">No payments yet. Add people or import the sheet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == 'edit' %}Edit batch{% else %}New batch{% endif %}{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'payroll:retr_list' %}">Retrenchment</a> ›
+  {% if mode == 'edit' %}Edit{% else %}New{% endif %}</div>{% endblock %}
+{% block page_title %}{% if mode == 'edit' %}Edit batch{% else %}New retrenchment batch{% endif %}{% endblock %}
+
+{% block content %}
+<style>
+  .eform{max-width:520px}
+  .fld{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+  .fld label{font-size:12.5px;color:var(--muted,#6b7a70);font-weight:600}
+  .fld input,.fld select{padding:9px 10px;border:1px solid var(--line,#dfe7e2);border-radius:9px;font:inherit;font-size:14px;background:#fff}
+  .fld input:focus,.fld select:focus{outline:none;border-color:var(--orange,#F26522)}
+  .formacts{display:flex;gap:10px;margin-top:4px}
+</style>
+
+<form method="post" class="eform" novalidate>
+  {% csrf_token %}
+  <div class="fld"><label>Station (blank = all)</label>{{ form.station }}</div>
+  <div class="fld"><label>Year</label>{{ form.year }}</div>
+  <div class="fld"><label>Title</label>{{ form.title }}</div>
+  <div class="fld"><label>Description (for the file)</label>{{ form.description }}</div>
+  <div class="fld"><label>Note (optional)</label>{{ form.note }}</div>
+  <div class="formacts">
+    <a href="{% url 'payroll:retr_list' %}" class="btn">Cancel</a>
+    <button type="submit" class="btn orange">{% if mode == 'edit' %}Save{% else %}Create{% endif %}</button>
+  </div>
+</form>
+{% endblock %}

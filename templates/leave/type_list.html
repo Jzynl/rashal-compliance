@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Leave types{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'leave:record_list' %}">Leave</a> › Types</div>{% endblock %}
+{% block page_title %}Leave types{% endblock %}
+{% block page_sub %}Categories of leave. Set the yearly entitlement once your policy figure is confirmed.{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<div class="controls">
+  <a href="{% url 'leave:record_list' %}" class="btn"><svg><use href="#i-arrow"/></svg> Back to leave</a>
+  <a href="{% url 'leave:type_add' %}" class="btn orange"><svg><use href="#i-plus"/></svg> Add type</a>
+</div>
+
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr>
+      <th>Name</th><th class="mid">Paid</th><th style="text-align:right">Days / year</th>
+      <th class="mid">Active</th><th style="text-align:right">Actions</th>
+    </tr></thead>
+    <tbody>
+    {% for t in types %}
+      <tr>
+        <td style="font-weight:600">{{ t.name }}</td>
+        <td style="text-align:center">{% if t.is_paid %}Yes{% else %}No{% endif %}</td>
+        <td style="text-align:right">{{ t.annual_entitlement_days|default:"—" }}</td>
+        <td style="text-align:center">{% if t.is_active %}Yes{% else %}No{% endif %}</td>
+        <td><div class="acts"><a href="{% url 'leave:type_edit' t.pk %}" class="abtn">Edit</a></div></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" class="empty">No leave types yet. Add “Annual” and “Sick” to start.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

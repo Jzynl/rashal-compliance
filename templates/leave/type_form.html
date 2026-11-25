@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == 'edit' %}Edit type{% else %}Add type{% endif %}{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'leave:type_list' %}">Leave types</a> ›
+  {% if mode == 'edit' %}Edit{% else %}Add{% endif %}</div>{% endblock %}
+{% block page_title %}{% if mode == 'edit' %}Edit leave type{% else %}Add leave type{% endif %}{% endblock %}
+
+{% block content %}
+<style>
+  .eform{max-width:460px}
+  .fld{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+  .fld.check{flex-direction:row;align-items:center;gap:8px}
+  .fld label{font-size:12.5px;color:var(--muted,#6b7a70);font-weight:600}
+  .fld input,.fld select{padding:9px 10px;border:1px solid var(--line,#dfe7e2);border-radius:9px;font:inherit;font-size:14px;background:#fff}
+  .fld input:focus{outline:none;border-color:var(--orange,#F26522)}
+  .formacts{display:flex;gap:10px;margin-top:4px}
+</style>
+
+<form method="post" class="eform" novalidate>
+  {% csrf_token %}
+  <div class="fld"><label>Name</label>{{ form.name }}</div>
+  <div class="fld check">{{ form.is_paid }}<label style="margin:0">Paid leave</label></div>
+  <div class="fld"><label>Days per year (leave blank until confirmed)</label>{{ form.annual_entitlement_days }}</div>
+  <div class="fld check">{{ form.is_active }}<label style="margin:0">Active</label></div>
+  <div class="fld"><label>Note (optional)</label>{{ form.note }}</div>
+  <div class="formacts">
+    <a href="{% url 'leave:type_list' %}" class="btn">Cancel</a>
+    <button type="submit" class="btn orange">{% if mode == 'edit' %}Save{% else %}Add{% endif %}</button>
+  </div>
+</form>
+{% endblock %}

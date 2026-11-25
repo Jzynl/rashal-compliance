@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Incidents{% endblock %}
+{% block crumb %}<div class="crumb">Incidents</div>{% endblock %}
+{% block page_title %}Incidents{% endblock %}
+{% block page_sub %}Reported incidents across stations.{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<div class="controls">
+  <form method="get">
+    <select name="status" onchange="this.form.submit()" style="padding:8px 10px;border:1px solid var(--line,#dfe7e2);border-radius:9px;font:inherit">
+      <option value="">All statuses</option>
+      <option value="open" {% if status == 'open' %}selected{% endif %}>Open</option>
+      <option value="review" {% if status == 'review' %}selected{% endif %}>Under review</option>
+      <option value="closed" {% if status == 'closed' %}selected{% endif %}>Closed</option>
+    </select>
+  </form>
+  <a href="{% url 'incidents:add' %}" class="btn orange"><svg><use href="#i-plus"/></svg> Report incident</a>
+</div>
+
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr>
+      <th>Date</th><th>Station</th><th>Title</th><th>Category</th>
+      <th class="mid">Severity</th><th class="mid">Status</th><th style="text-align:right">Actions</th>
+    </tr></thead>
+    <tbody>
+    {% for i in incidents %}
+      <tr>
+        <td>{{ i.occurred_on|date:"d M Y" }}</td>
+        <td>{{ i.station.name }}</td>
+        <td><a href="{% url 'incidents:detail' i.pk %}" style="color:var(--ink);font-weight:600">{{ i.title }}</a></td>
+        <td>{{ i.get_category_display }}</td>
+        <td style="text-align:center">
+          {% if i.severity == 'major' %}<span class="pill band-expired"><i></i>Major</span>
+          {% elif i.severity == 'moderate' %}<span class="pill band-warn"><i></i>Moderate</span>
+          {% else %}<span class="pill band-active"><i></i>Minor</span>{% endif %}</td>
+        <td style="text-align:center">
+          {% if i.status == 'closed' %}<span class="pill band-ok"><i></i>Closed</span>
+          {% elif i.status == 'review' %}<span class="pill band-warn"><i></i>Review</span>
+          {% else %}<span class="pill band-expired"><i></i>Open</span>{% endif %}</td>
+        <td><div class="acts"><a href="{% url 'incidents:detail' i.pk %}" class="abtn">
+          <svg><use href="#i-arrow"/></svg> Open</a></div></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7" class="empty">No incidents reported.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

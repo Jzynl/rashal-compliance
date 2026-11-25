@@ -20,6 +20,9 @@ class RoleRequiredMixin(LoginRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return super().dispatch(request, *args, **kwargs)
+        # A Django superuser always has full access, regardless of role groups.
+        if request.user.is_superuser:
+            return super().dispatch(request, *args, **kwargs)
         if self.allowed_roles and not request.user.has_any_role(self.allowed_roles):
             raise PermissionDenied("Your role does not have access to this page.")
         return super().dispatch(request, *args, **kwargs)

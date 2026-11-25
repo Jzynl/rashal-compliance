@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Retrenchment{% endblock %}
+{% block crumb %}<div class="crumb"><a href="{% url 'payroll:run_list' %}">Payroll</a> › Retrenchment</div>{% endblock %}
+{% block page_title %}Retrenchment payouts{% endblock %}
+{% block page_sub %}Severance benefit batches and their bank file.{% endblock %}
+
+{% block content %}
+{% include "compliance/_icons.html" %}
+
+<div class="controls">
+  <a href="{% url 'payroll:run_list' %}" class="btn"><svg><use href="#i-arrow"/></svg> Back to payroll</a>
+  <a href="{% url 'payroll:retr_add' %}" class="btn orange"><svg><use href="#i-plus"/></svg> New batch</a>
+</div>
+
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr>
+      <th>Batch</th><th>Location</th><th style="text-align:right">People</th>
+      <th style="text-align:right">Total (TZS)</th><th class="mid">Status</th>
+      <th style="text-align:right">Actions</th>
+    </tr></thead>
+    <tbody>
+    {% for b in batches %}
+      <tr>
+        <td><a href="{% url 'payroll:retr_detail' b.pk %}" style="color:var(--ink);font-weight:600">{{ b.title }} {{ b.year }}</a></td>
+        <td>{{ b.station.name|default:"All" }}</td>
+        <td style="text-align:right">{{ b.headcount }}</td>
+        <td style="text-align:right;font-weight:700">{{ b.total_amount|floatformat:0|intcomma }}</td>
+        <td style="text-align:center">
+          {% if b.is_final %}<span class="pill band-ok"><i></i>Finalised</span>
+          {% else %}<span class="pill band-warn"><i></i>Draft</span>{% endif %}</td>
+        <td><div class="acts"><a href="{% url 'payroll:retr_detail' b.pk %}" class="abtn">
+          <svg><use href="#i-arrow"/></svg> Open</a></div></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6" class="empty">No retrenchment batches yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
